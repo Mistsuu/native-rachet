@@ -1,0 +1,778 @@
+#pragma once
+
+#include <iostream>
+#include <cstdlib>
+#include <cstring>
+#include <iomanip>
+#include "Const.h"
+#include "Type.h"
+
+using namespace std;
+
+class Buffer
+{
+private:
+    u_char* head       = NULL;
+    uint    size       = 0;
+    uint    actualSize = 0;
+
+    // ----------------------------- MEM MANAGEMENT HERE -----------------------------
+    //                  (could be experimented to have more fun :))
+    void reallocate(uint size)
+    {   
+        // Allocate needed
+        if (!this->head) {
+            this->head       = (u_char*)malloc(size);
+            this->actualSize = size;
+        } else if (this->actualSize >= size) {
+            return;
+        } else if (this->actualSize  < size) {
+            this->head       = (u_char*)realloc(this->head, size);
+            this->actualSize = size;
+        }
+
+        // If after this, head still returns NULL, exit the program immediately!
+        if (!this->head) {
+            cerr << "[ ! ] Critical Error: Buffer.h: reallocate(): Allocation failed." << endl;
+            exit(BUFFER_ERROR_CODE);
+        }
+    }
+
+    // ----------------------------- TEMPLATES FOR EQ= & CONSTRUCTOR WITH ARGS() -----------------------------
+    void copyFrom(Buffer const &buf)
+    {
+        this->reallocate(buf.size);
+        this->size = buf.size;
+        if (buf.size)
+            memcpy(this->head, buf.head, buf.size);
+    }
+
+    void copyFrom(string const &str)
+    {
+        if (!str.size()) {
+            this->size = 0;
+            return;
+        }
+
+        this->reallocate(str.size());
+        this->size = str.size();
+        if (str.size())
+            memcpy(this->head, str.c_str(), str.size());
+    }
+
+    void copyFrom(char* str, uint size)
+    {
+        this->reallocate(size);
+        this->size = size;
+        if (size)
+            memcpy(this->head, str, size);
+    }
+
+    void copyFrom(char chr)
+    {
+        this->reallocate(1);
+        this->size = 1;
+        this->head[0] = chr;
+    }
+
+
+public:
+    void __debug__()
+    {
+        cout << "------------------- < debug buffer> -----------------------" << endl;
+        if (this->head) {
+            cout << "[ i ] Data (0->size):       ";
+            for (int i = 0; i < this->size; ++i) 
+                cout << setw(2) << setfill('0') << hex << (int)this->head[i];
+            cout << endl;
+
+            cout << "[ i ] Data (0->actualSize): ";
+            for (int i = 0; i < this->actualSize; ++i) 
+                cout << setw(2) << setfill('0') << hex << (int)this->head[i];
+            cout << endl;
+        }
+        cout << "[ i ] Size:        " << dec << this->size << endl;
+        cout << "[ i ] Actual size: " << this->actualSize << endl;
+        cout << "------------------- </debug buffer> -----------------------" << endl;
+
+    }
+
+    // ----------------------------- CONSTRUCTORS() -----------------------------
+    Buffer()
+    {
+        this->head       = NULL;
+        this->size       = 0;
+        this->actualSize = 0;
+    }
+
+    Buffer(uint size)
+    {
+        if (size) {
+            this->head       = (u_char*)malloc(size);
+            this->size       = size;
+            this->actualSize = size;
+        } else {
+            this->head       = NULL;
+            this->size       = 0;
+            this->actualSize = 0;
+        }
+    }
+
+    Buffer(int size)
+    {
+        if (size > 0) {
+            this->head       = (u_char*)malloc(size);
+            this->size       = (uint)size;
+            this->actualSize = (uint)size;
+        } else {
+            this->head       = NULL;
+            this->size       = 0;
+            this->actualSize = 0;
+        }
+    }
+
+    Buffer(Buffer const &buf)
+    {
+        this->head       = NULL;
+        this->size       = 0;
+        this->actualSize = 0;
+        this->copyFrom(buf);
+    }
+
+    Buffer(string const &str)
+    {
+        this->head       = NULL;
+        this->size       = 0;
+        this->actualSize = 0;
+        this->copyFrom(str);
+    }
+
+    Buffer(char* str, uint size)
+    {
+        this->head       = NULL;
+        this->size       = 0;
+        this->actualSize = 0;
+        this->copyFrom(str, size);
+    }
+
+    Buffer(char chr)
+    {
+        this->head       = NULL;
+        this->size       = 0;
+        this->actualSize = 0;
+        this->copyFrom(chr);
+    }
+
+    // ----------------------------- JUST CLEANUP -----------------------------
+    void cleanMemory()
+    {
+        if (this->head) {
+            free(this->head);
+            this->head       = NULL;
+            this->size       = 0;
+            this->actualSize = 0;
+        }
+    }
+
+    void zeroAll()
+    {
+        if (this->head)
+            memset(this->head, 0, this->size);
+    }
+
+    // ----------------------------- LADD+= -----------------------------
+    void operator+= (Buffer const &buf)
+    {
+        if (!buf.size)
+            return;
+        
+        uint newSize = this->size + buf.size;
+        if (newSize > this->actualSize)
+            this->reallocate(newSize);
+
+        memcpy(&this->head[this->size], buf.head, buf.size);
+        this->size = newSize;
+    }
+
+    void operator+= (string const &str)
+    {
+        if (!str.size())
+            return;
+
+        uint newSize = this->size + str.size();
+        if (newSize > this->actualSize)
+            this->reallocate(newSize);
+
+        memcpy(&this->head[this->size], str.c_str(), str.size());
+        this->size = newSize;
+    }
+
+    void operator+= (char chr)
+    {
+        if (this->size + 1 > this->actualSize)
+            this->reallocate(this->size + 1);
+
+        this->head[this->size] = chr;
+        this->size++;
+    }
+
+    // ----------------------------- LADD+ -----------------------------
+    Buffer operator+ (Buffer const &buf)
+    {
+        Buffer newBuffer(this->size + buf.size);
+        if (this->size)
+            memcpy(newBuffer.head, this->head, this->size);
+        if (buf.size)
+            memcpy(&newBuffer.head[this->size], buf.head, buf.size);
+        return newBuffer;
+    }
+
+    Buffer operator+ (string const &str)
+    {
+        Buffer newBuffer(this->size + (uint)str.size());
+        if (this->size)
+            memcpy(newBuffer.head, this->head, this->size);
+        if (str.size())
+            memcpy(&newBuffer.head[this->size], str.c_str(), str.size());
+        return newBuffer;
+    }
+
+    Buffer operator+ (char chr)
+    {
+        Buffer newBuffer(this->size + 1);
+        if (this->size)
+            memcpy(newBuffer.head, this->head, this->size);
+        newBuffer.head[this->size] = chr;
+        return newBuffer;
+    }
+
+    // ----------------------------- EQ== -----------------------------
+    bool operator== (Buffer const &buf)
+    {
+        return this->size == buf.size
+            && this->head
+            && memcmp(this->head, buf.head, this->size) == 0;
+    }
+
+    bool operator== (string const &str)
+    {
+        return this->size == str.size() 
+            && this->head 
+            && memcmp(this->head, str.c_str(), this->size) == 0;
+    }
+
+    bool operator== (char chr)
+    {
+        return this->size == 1 
+            && this->head 
+            && this->head[0] == chr;
+    }
+
+
+    // ----------------------------- IEQ!= -----------------------------
+    bool operator!= (Buffer const &buf)
+    {
+        return this->size != buf.size ||
+              (this->head
+            && memcmp(this->head, buf.head, this->size) != 0);
+    }
+
+    bool operator!= (string const &str)
+    {
+        return this->size != str.size() ||
+              (this->head
+            && memcmp(this->head, str.c_str(), this->size) != 0);
+    }
+
+    bool operator!= (char chr)
+    {
+        return this->size != 1 ||
+              (this->head 
+            && this->head[0] != chr);
+    }
+
+
+    // ----------------------------- LE<= -----------------------------
+    bool operator<= (Buffer const &buf)
+    {
+        if (this->size < buf.size)
+            return true;
+        if (this->size > buf.size)
+            return false;
+        return this->head
+            && memcmp(this->head, buf.head, this->size) <= 0;
+    }
+
+    bool operator<= (string const &str)
+    {
+        if (this->size < str.size())
+            return true;
+        if (this->size > str.size())
+            return false;
+        return this->head 
+            && memcmp(this->head, str.c_str(), this->size) <= 0;
+    }
+
+    bool operator<= (char chr)
+    {
+        if (!this->size)
+            return true;
+        if (this->size > 1)
+            return false;
+        return this->head 
+            && this->head[0] <= chr;
+    }
+
+
+    // ----------------------------- LT< -----------------------------
+    bool operator< (Buffer const &buf)
+    {
+        if (this->size < buf.size)
+            return true;
+        if (this->size > buf.size)
+            return false;
+        return this->head
+            && memcmp(this->head, buf.head, this->size) < 0;
+    }
+
+    bool operator< (string const &str)
+    {
+        if (this->size < str.size())
+            return true;
+        if (this->size > str.size())
+            return false;
+        return this->head 
+            && memcmp(this->head, str.c_str(), this->size) < 0;
+    }
+
+    bool operator< (char chr)
+    {
+        if (!this->size)
+            return true;
+        if (this->size > 1)
+            return false;
+        return this->head 
+            && this->head[0] < chr;
+    }
+
+
+    // ----------------------------- GT> -----------------------------
+    bool operator> (Buffer const &buf)
+    {
+        if (this->size < buf.size)
+            return false;
+        if (this->size > buf.size)
+            return true;
+        return this->head
+            && memcmp(this->head, buf.head, this->size) > 0;
+    }
+
+    bool operator> (string const &str)
+    {
+        if (this->size < str.size())
+            return false;
+        if (this->size > str.size())
+            return true;
+        return this->head 
+            && memcmp(this->head, str.c_str(), this->size) > 0;
+    }
+
+    bool operator> (char chr)
+    {
+        if (!this->size)
+            return false;
+        if (this->size > 1)
+            return true;
+        return this->head 
+            && this->head[0] > chr;
+    }
+
+
+    // ----------------------------- GE>= -----------------------------
+    bool operator>= (Buffer const &buf)
+    {
+        if (this->size < buf.size)
+            return false;
+        if (this->size > buf.size)
+            return true;
+        return this->head
+            && memcmp(this->head, buf.head, this->size) >= 0;
+    }
+
+    bool operator>= (string const &str)
+    {
+        if (this->size < str.size())
+            return false;
+        if (this->size > str.size())
+            return true;
+        return this->head 
+            && memcmp(this->head, str.c_str(), this->size) >= 0;
+    }
+
+    bool operator>= (char chr)
+    {
+        if (!this->size)
+            return false;
+        if (this->size > 1)
+            return true;
+        return this->head 
+            && this->head[0] >= chr;
+    }
+
+
+    // ----------------------------- ASSIGN= -----------------------------
+    void operator= (Buffer const &buf)
+    {
+        this->copyFrom(buf);
+    }
+
+    void operator= (string const &str)
+    {
+        this->copyFrom(str);
+    }
+
+    void operator= (char chr)
+    {
+        this->copyFrom(chr);
+    }
+
+
+    // ----------------------------- MUL* -----------------------------
+    Buffer operator* (uint noDup)
+    {
+        if (!noDup)
+            return Buffer(0);
+        if (noDup == 1)
+            return Buffer(*this);
+
+        Buffer dupBuffer(this->size * noDup);
+        for (int i = 0; i < noDup; ++i)
+            memcpy(&dupBuffer.head[this->size * i], this->head, this->size);
+        return dupBuffer;
+    }
+
+    // ----------------------------- MUL*= -----------------------------
+    void operator*= (uint noDup)
+    {
+        if (!noDup) 
+            return this->cleanMemory();
+        if (noDup == 1)
+            return;
+
+        this->reallocate(this->size * noDup);
+        for (int i = 1; i < noDup; ++i)
+            memcpy(&this->head[this->size * i], this->head, this->size);
+        this->size *= noDup;
+    }
+
+
+    // ----------------------------- EXTRACT UTILS -----------------------------
+    inline u_char& operator[] (int index)
+    {
+        if (index >= (int)this->size || index < -((int)(this->size))) {
+            cerr << "[ ! ] Error: Buffer.h: operator[]: Accessing index " << index << " is not allowed, since size = " << this->size << "." << endl;
+            exit(BUFFER_ERROR_CODE);
+        }
+
+        // If index is negative, convert it to its non-negative counterpart.
+        if (index < 0)
+            index = (int)this->size + index;
+        return this->head[index];
+    }
+    
+    u_char* data()
+    {
+        return this->head;
+    }
+
+    uint len()
+    {
+        return this->size;
+    }
+
+    // ----------------------------- HEX UTILS -----------------------------
+    string toHex()
+    {
+        static const char* digits = "0123456789abcdef";
+        int    byte;
+        string hexResult;
+        for (int i = 0; i < this->size; ++i) {
+            byte       = (int)this->head[i];
+            hexResult += digits[byte >>   4];
+            hexResult += digits[byte &  0xf];
+        }
+        return hexResult;
+    }
+
+    void fromHex(string hexString)
+    {
+        // Sanity check...
+        if (hexString.length() % 2 != 0) {
+            cerr << "[ ! ] Error: Buffer.h: fromHex(): Cannot convert hexstring \"" << hexString << "\" to buffer! Invalid length: " << hexString.length() << endl;
+            exit(BUFFER_ERROR_CODE);
+        }
+
+        // Set size.
+        int numBytes = hexString.length() / 2;
+        this->reallocate(numBytes);
+        this->size = numBytes;
+
+        // Loop through hex string...
+        unsigned char byte;
+        for (int i = 0; i < numBytes; ++i) {
+            byte = 0;
+
+            for (int j = 0; j < 2; ++j)
+            {
+                byte <<= 4;
+
+                if      ('0' <= hexString[i*2+j] && hexString[i*2+j] <= '9') 
+                    byte += hexString[i*2+j] - '0';
+                else if ('A' <= hexString[i*2+j] && hexString[i*2+j] <= 'F')
+                    byte += hexString[i*2+j] - 'A' + 10;
+                else if ('a' <= hexString[i*2+j] && hexString[i*2+j] <= 'f')
+                    byte += hexString[i*2+j] - 'a' + 10;
+                else 
+                {
+                    cerr << "[ ! ] Error: Buffer.h: fromHex(): Cannot convert hexstring \"" << hexString << "\" to buffer! Invalid hex character at position " << i*2+j << ": " << hexString[i*2+j] << endl;
+                    exit(BUFFER_ERROR_CODE);
+                }
+            }
+
+            this->head[i] = byte;
+        }
+    }
+
+    
+    // ----------------------------- SMART POINTER -----------------------------
+    ~Buffer()
+    {
+        this->cleanMemory();
+    }
+};
+
+// ----------------------------- OUTPUT -----------------------------
+std::ostream& operator<<(std::ostream &os, Buffer buf)
+{
+    u_char* buf_ptr = buf.data();
+    uint    buf_len = buf.len();
+    for (int i = 0; i < buf_len; ++i)
+        os << buf_ptr[i];
+    return os;
+}
+
+
+// ----------------------------- LADD+ -----------------------------
+Buffer operator+(string const &str, Buffer buf)
+{
+    Buffer  newBuffer((uint)str.size() + buf.len());
+    u_char* bufferPtr = newBuffer.data();
+    if (str.size())
+        memcpy(bufferPtr, str.c_str(), str.size());
+    if (buf.len())
+        memcpy(&bufferPtr[str.size()], buf.data(), buf.len());
+    return newBuffer;
+}
+
+Buffer operator+(char chr, Buffer buf)
+{
+    Buffer  newBuffer(1 + buf.len());
+    u_char* bufferPtr = newBuffer.data();
+    bufferPtr[0] = chr;
+    if (buf.len())
+        memcpy(&bufferPtr[1], buf.data(), buf.len());
+    return newBuffer;
+}
+
+// ----------------------------- LMUL* -----------------------------
+Buffer operator* (uint noDup, Buffer buf)
+{
+    if (!noDup)
+        return Buffer(0);
+    if (noDup == 1)
+        return Buffer(buf);
+
+    Buffer  dupBuffer(buf.len() * noDup);
+    u_char* dupBufHead = dupBuffer.data();
+    for (int i = 0; i < noDup; ++i)
+        memcpy(&dupBufHead[buf.len() * i], buf.data(), buf.len());
+    return dupBuffer;
+}
+
+// ----------------------------- LGT> -----------------------------
+bool operator> (string const &str, Buffer buf)
+{
+    if (str.size() > buf.len())
+        return true;
+    if (str.size() < buf.len())
+        return false;
+    return buf.data()
+        && memcmp(str.c_str(), buf.data(), buf.len()) > 0;
+}
+
+bool operator> (char chr, Buffer buf)
+{
+    if (!buf.len())
+        return true;
+    if (buf.len() > 1)
+        return false;
+    return buf.data() 
+        && chr > buf.data()[0];
+}
+
+// ----------------------------- LGE>= -----------------------------
+bool operator>= (string const &str, Buffer buf)
+{
+    if (str.size() > buf.len())
+        return true;
+    if (str.size() < buf.len())
+        return false;
+    return buf.data()
+        && memcmp(str.c_str(), buf.data(), buf.len()) >= 0;
+}
+
+bool operator>= (char chr, Buffer buf)
+{
+    if (!buf.len())
+        return true;
+    if (buf.len() > 1)
+        return false;
+    return buf.data() 
+        && chr >= buf.data()[0];
+}
+
+
+// ----------------------------- LLT< -----------------------------
+bool operator< (string const &str, Buffer buf)
+{
+    if (str.size() > buf.len())
+        return false;
+    if (str.size() < buf.len())
+        return true;
+    return buf.data()
+        && memcmp(str.c_str(), buf.data(), buf.len()) < 0;
+}
+
+bool operator< (char chr, Buffer buf)
+{
+    if (!buf.len())
+        return false;
+    if (buf.len() > 1)
+        return true;
+    return buf.data() 
+        && chr < buf.data()[0];
+}
+
+// ----------------------------- LLE<= -----------------------------
+bool operator<= (string const &str, Buffer buf)
+{
+    if (str.size() > buf.len())
+        return false;
+    if (str.size() < buf.len())
+        return true;
+    return buf.data()
+        && memcmp(str.c_str(), buf.data(), buf.len()) <= 0;
+}
+
+bool operator<= (char chr, Buffer buf)
+{
+    if (!buf.len())
+        return false;
+    if (buf.len() > 1)
+        return true;
+    return buf.data() 
+        && chr <= buf.data()[0];
+}
+
+// ----------------------------- LEQ== -----------------------------
+bool operator== (string const &str, Buffer buf)
+{
+    return buf.len() == str.size() 
+        && buf.data()
+        && memcmp(buf.data(), str.c_str(), buf.len()) == 0;
+}
+
+bool operator== (char chr, Buffer buf)
+{
+    return buf.len() == 1
+        && buf.data()
+        && buf.data()[0] == chr;
+}
+
+
+// ----------------------------- LIEQ!= -----------------------------
+bool operator!= (string const &str, Buffer buf)
+{
+    return buf.len() != str.size() ||
+          (buf.data()
+        && memcmp(buf.data(), str.c_str(), buf.len()) != 0);
+}
+
+bool operator!= (char chr, Buffer buf)
+{
+    return buf.len() != 1 ||
+          (buf.data()
+        && buf.data()[0] != chr);
+}
+
+// ----------------------------- CONVERSIONS -----------------------------
+Buffer intToBuffer(Int x, uint size, bool bigEndian=true)
+{
+    uint   numBytes = mpz_sizeinbase(x.get_mpz_t(), 256);
+    Buffer outputBuffer(max(numBytes, size));
+    outputBuffer.zeroAll();
+
+    if (numBytes >= size || !bigEndian) {
+        mpz_export(
+            outputBuffer.data(), 
+            NULL, 
+            1, 
+            1, 
+            (bigEndian ? 1:-1), 
+            0, 
+            x.get_mpz_t()
+        );
+    } else {
+        mpz_export(
+            &(outputBuffer.data()[size - numBytes]), 
+            NULL, 
+            1, 
+            1, 
+            (bigEndian ? 1:-1), 
+            0, 
+            x.get_mpz_t()
+        );
+    }
+
+    return outputBuffer;
+}
+
+Int bufferToInt(Buffer bufferInt, bool bigEndian=true)
+{
+    Int result;
+    mpz_import(
+        result.get_mpz_t(),
+        bufferInt.len(),
+        1,
+        1,
+        (bigEndian ? 1:-1),
+        0,
+        bufferInt.data()
+    );
+    return result;
+}
+
+Int bufferToInt(u_char* bufferInt, int size, bool bigEndian=true)
+{
+    Int result;
+    mpz_import(
+        result.get_mpz_t(),
+        size,
+        1,
+        1,
+        (bigEndian ? 1:-1),
+        0,
+        bufferInt
+    );
+    return result;
+}
