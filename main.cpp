@@ -13,6 +13,9 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
+    Buffer buf;
+    buf *= -1;
+
     HKDF(
         42,
         Buffer::fromHex("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b"),

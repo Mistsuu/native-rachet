@@ -438,9 +438,13 @@ public:
 
 
     // ----------------------------- MUL* -----------------------------
-    Buffer operator* (uint noDup)
+    Buffer operator* (int noDup)
     {
-        if (!noDup)
+        if (noDup < 0) {
+            cerr << "[ ! ] Error: Buffer.h: operator*(): Trying to multiply buffer with negative number!" << endl;
+            exit(BUFFER_ERROR_CODE);
+        }
+        if (!noDup || !this->size)
             return Buffer(0);
         if (noDup == 1)
             return Buffer(*this);
@@ -452,9 +456,13 @@ public:
     }
 
     // ----------------------------- MUL*= -----------------------------
-    void operator*= (uint noDup)
+    void operator*= (int noDup)
     {
-        if (!noDup) 
+        if (noDup < 0) {
+            cerr << "[ ! ] Error: Buffer.h: operator*=(): Trying to multiply buffer with negative number!" << endl;
+            exit(BUFFER_ERROR_CODE);
+        }
+        if (!noDup || !this->size) 
             return this->cleanMemory();
         if (noDup == 1)
             return;
@@ -721,9 +729,13 @@ Buffer operator+(char chr, Buffer buf)
 }
 
 // ----------------------------- LMUL* -----------------------------
-Buffer operator* (uint noDup, Buffer buf)
+Buffer operator* (int noDup, Buffer buf)
 {
-    if (!noDup)
+    if (noDup < 0) {
+        cerr << "[ ! ] Error: Buffer.h: operator*(): Trying to multiply buffer with negative number!" << endl;
+        exit(BUFFER_ERROR_CODE);
+    }
+    if (!noDup || !buf.len())
         return Buffer(0);
     if (noDup == 1)
         return Buffer(buf);
