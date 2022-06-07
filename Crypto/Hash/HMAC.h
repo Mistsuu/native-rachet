@@ -4,6 +4,19 @@
 
 class HMAC
 {
+    void padKey(Buffer key)
+    {
+        cerr << "[ ! ] Error! HMAC.h: padKey(Buffer key) is not implemented." << endl;
+        exit(NOT_IMPLEMENTED_ERROR_CODE);
+    }
+
+    void padKey(string key)
+    {
+        cerr << "[ ! ] Error! HMAC.h: padKey(string key) is not implemented." << endl;
+        exit(NOT_IMPLEMENTED_ERROR_CODE);
+    }
+
+
 public:
     uint blockSize;
     uint outputSize;

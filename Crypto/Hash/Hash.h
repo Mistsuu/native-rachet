@@ -7,13 +7,13 @@ class Hash
 public:
     void digest()
     {
-        cerr << "[ ! ] Error! HMAC.h: digest() is not implemented." << endl;
+        cerr << "[ ! ] Error! Hash.h: digest() is not implemented." << endl;
         exit(NOT_IMPLEMENTED_ERROR_CODE);
     }
 
     void hexdigest()
     {
-        cerr << "[ ! ] Error! HMAC.h: hexDigest() is not implemented." << endl;
+        cerr << "[ ! ] Error! Hash.h: hexDigest() is not implemented." << endl;
         exit(NOT_IMPLEMENTED_ERROR_CODE);
     }
 

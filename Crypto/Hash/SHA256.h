@@ -18,13 +18,13 @@ public:
     }
 
 
-    SHA256Hash(Buffer& initialData)
+    SHA256Hash(Buffer initialData)
     {
         SHA256_Init(&this->context);
         SHA256_Update(&this->context, initialData.data(), initialData.len());
     }
 
-    SHA256Hash(string& initialData)
+    SHA256Hash(string initialData)
     {
         SHA256_Init(&this->context);
         SHA256_Update(&this->context, initialData.c_str(), initialData.length());
@@ -52,17 +52,7 @@ public:
 
     inline string hexdigest()
     {
-        Buffer      digest(SHA256_DIGEST_LENGTH);
-        string      hexDigest = "";
-        const char* digits = "0123456789abcdef";
-        
-        SHA256_Final(digest.data(), &this->context);
-        for (int i = 0; i < SHA256_DIGEST_LENGTH; ++i) {
-            hexDigest += digits[digest[i] >>   4];
-            hexDigest += digits[digest[i] &  0xf];
-        }
-
-        return hexDigest;
+        return this->digest().toHex();
     }
 
 

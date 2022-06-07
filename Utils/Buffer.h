@@ -563,13 +563,13 @@ public:
     // ----------------------------- HEX UTILS -----------------------------
     string toHex()
     {
-        static const char* digits = "0123456789abcdef";
+        static const char* hexDigits = "0123456789abcdef";
         int    byte;
         string hexResult;
         for (int i = 0; i < this->size; ++i) {
             byte       = (int)this->head[i];
-            hexResult += digits[byte >>   4];
-            hexResult += digits[byte &  0xf];
+            hexResult += hexDigits[byte >>   4];
+            hexResult += hexDigits[byte &  0xf];
         }
         return hexResult;
     }

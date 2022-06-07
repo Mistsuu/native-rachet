@@ -18,13 +18,13 @@ public:
     }
 
 
-    SHA512Hash(Buffer& initialData)
+    SHA512Hash(Buffer initialData)
     {
         SHA512_Init(&this->context);
         SHA512_Update(&this->context, initialData.data(), initialData.len());
     }
 
-    SHA512Hash(string& initialData)
+    SHA512Hash(string initialData)
     {
         SHA512_Init(&this->context);
         SHA512_Update(&this->context, initialData.c_str(), initialData.size());
@@ -52,26 +52,16 @@ public:
 
     inline string hexdigest()
     {
-        Buffer      digest(SHA512_DIGEST_LENGTH);
-        string      hexDigest = "";
-        const char* digits = "0123456789abcdef";
-        
-        SHA512_Final(digest.data(), &this->context);
-        for (int i = 0; i < SHA512_DIGEST_LENGTH; ++i) {
-            hexDigest += digits[digest[i] >>   4];
-            hexDigest += digits[digest[i] &  0xf];
-        }
-
-        return hexDigest;
+        return this->digest().toHex();
     }
 
 
-    inline void update(Buffer& input)
+    inline void update(Buffer input)
     {
         SHA512_Update(&this->context, input.data(), input.len());
     }
 
-    inline void update(string& input)
+    inline void update(string input)
     {
         SHA512_Update(&this->context, input.c_str(), input.length());
     }

@@ -13,7 +13,7 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-    HMAC_SHA256().digest(Buffer(""), Buffer(""));
+    HMAC_SHA256().digest(Buffer("key"), Buffer("The quick brown fox jumps over the lazy dog")).__debug__();
 }
 
 // ----------------------------------------------------------------------------------------------------------/-
