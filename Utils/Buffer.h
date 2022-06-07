@@ -465,6 +465,76 @@ public:
         this->size *= noDup;
     }
 
+    // ----------------------------- XOR^ -----------------------------
+    Buffer operator^ (Buffer const &buf)
+    {
+        if (this->size != buf.size) {
+            cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << endl;
+            exit(BUFFER_ERROR_CODE);
+        }
+
+        Buffer newBuffer(this->size);
+        for (int i = 0; i < this->size; ++i)
+            newBuffer.head[i] = this->head[i] ^ buf.head[i];
+        return newBuffer;
+    }
+
+    Buffer operator^ (string const &str)
+    {
+        if (this->size != str.size()) {
+            cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << endl;
+            exit(BUFFER_ERROR_CODE);
+        }
+
+        Buffer newBuffer(this->size);
+        for (int i = 0; i < this->size; ++i)
+            newBuffer.head[i] = this->head[i] ^ str.c_str()[i];
+        return newBuffer;
+    }
+
+    Buffer operator^ (char chr)
+    {
+        if (this->size != 1) {
+            cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << endl;
+            exit(BUFFER_ERROR_CODE);
+        }
+
+        return Buffer(this->head[0] ^ chr);
+    }
+
+    // ----------------------------- XOR^= -----------------------------
+    void operator^= (Buffer const &buf)
+    {
+        if (this->size != buf.size) {
+            cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << endl;
+            exit(BUFFER_ERROR_CODE);
+        }
+
+        for (int i = 0; i < this->size; ++i)
+            this->head[i] ^= buf.head[i];
+    }
+
+    void operator^= (string const &str)
+    {
+        if (this->size != str.size()) {
+            cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << endl;
+            exit(BUFFER_ERROR_CODE);
+        }
+
+        for (int i = 0; i < this->size; ++i)
+            this->head[i] ^= str[i];
+    }
+
+    void operator^= (char chr)
+    {
+        if (this->size != 1) {
+            cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << endl;
+            exit(BUFFER_ERROR_CODE);
+        }
+
+        this->head[0] ^= chr;
+    }
+
 
     // ----------------------------- EXTRACT UTILS -----------------------------
     inline u_char& operator[] (int index)
@@ -476,7 +546,7 @@ public:
 
         // If index is negative, convert it to its non-negative counterpart.
         if (index < 0)
-            index = (int)this->size + index;
+            index += (int)this->size;
         return this->head[index];
     }
     
@@ -713,6 +783,30 @@ bool operator!= (char chr, Buffer buf)
     return buf.len() != 1 ||
           (buf.data()
         && buf.data()[0] != chr);
+}
+
+// ----------------------------- XOR^ -----------------------------
+Buffer operator^ (string const &str, Buffer buf)
+{
+    if (buf.len() != str.size()) {
+        cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << endl;
+        exit(BUFFER_ERROR_CODE);
+    }
+
+    Buffer newBuffer;
+    for (int i = 0; i < buf.len(); ++i)
+        newBuffer[i] = str[i] ^ buf[i];
+    return newBuffer;
+}
+
+Buffer operator^ (char chr, Buffer buf)
+{
+    if (buf.len() != 1) {
+        cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << endl;
+        exit(BUFFER_ERROR_CODE);
+    }
+
+    return Buffer(buf[0] ^ chr);
 }
 
 // ----------------------------- CONVERSIONS -----------------------------

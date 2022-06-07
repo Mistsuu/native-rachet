@@ -26,7 +26,7 @@ public:
     SHA512Hash(string& initialData)
     {
         SHA512_Init(&this->context);
-        SHA512_Update(&this->context, initialData.c_str(), initialData.length());
+        SHA512_Update(&this->context, initialData.c_str(), initialData.size());
     }
 
     SHA512Hash(const char* initialData, uint size)

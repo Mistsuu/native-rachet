@@ -87,19 +87,7 @@ public:
         return newKeyPair;
     }
 
-    Point calculateSharedSecret(KeyPair& aliceKeyPair, KeyPair& bobKeyPair)
-    {
-        if (aliceKeyPair.privateKey == PRIVATE_KEY_NULL && bobKeyPair.privateKey == PRIVATE_KEY_NULL) {
-            cerr << "[ ! ] Error: Curve25519.h: calculateSharedSecret(): Empty shared secret from both parties.\n";
-            exit(INVALID_KEYPAIR_ERROR_CODE);
-        }
-
-        if (aliceKeyPair.privateKey == PRIVATE_KEY_NULL)
-            return xMUL(aliceKeyPair.publicKey, bobKeyPair.privateKey);
-        return xMUL(bobKeyPair.publicKey, aliceKeyPair.privateKey);
-    }
-
-    Point calculateSharedSecret(Point& theirPublicKey, Int ourPrivateKey)
+    Point calculateSharedSecret(Int ourPrivateKey, Point& theirPublicKey)
     {
         return xMUL(theirPublicKey, ourPrivateKey);
     }

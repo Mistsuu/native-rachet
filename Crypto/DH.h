@@ -2,6 +2,8 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
+// ----------------------------------------------------------------------------------------------------------\-
+
 #define USING_CURVE25519
 // #define USING_CURVE448
 
@@ -34,5 +36,8 @@
     #include "Hash/Elligator2.h"
     typedef Elligator2 HashClass;
 #endif
+
+
+// ----------------------------------------------------------------------------------------------------------/-
 
 #pragma GCC diagnostic pop
