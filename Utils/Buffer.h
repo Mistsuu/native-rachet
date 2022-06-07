@@ -537,7 +537,7 @@ public:
 
 
     // ----------------------------- EXTRACT UTILS -----------------------------
-    inline u_char& operator[] (int index)
+    inline int filterAndConvertIndex(int index)
     {
         if (index >= (int)this->size || index < -((int)(this->size))) {
             cerr << "[ ! ] Error: Buffer.h: operator[]: Accessing index " << index << " is not allowed, since size = " << this->size << "." << endl;
@@ -547,7 +547,72 @@ public:
         // If index is negative, convert it to its non-negative counterpart.
         if (index < 0)
             index += (int)this->size;
+        return index;
+    }
+
+
+    inline u_char& operator[] (int index)
+    {
+        index = filterAndConvertIndex(index);
         return this->head[index];
+    }
+
+    /*
+        operator[] with list as input:
+            Mimic Python's [:] notation
+    */
+    inline Buffer operator[] (std::initializer_list<int> range)
+    {
+        int  index;
+        int  lIndex;
+        int  rIndex;
+        int  step;
+        auto pRange = range.begin();
+
+        if (range.size() == 1) {
+            index  = *(pRange++);
+            return Buffer(this[index]);
+
+        } else if (range.size() == 2) {
+            lIndex = *(pRange++);
+            rIndex = *(pRange++);
+
+            lIndex = filterAndConvertIndex(lIndex);
+            rIndex = filterAndConvertIndex(rIndex);
+            if (lIndex < rIndex) {
+                Buffer newBuffer(rIndex-lIndex);
+                memcpy(newBuffer.head, &this->head[lIndex], rIndex-lIndex);
+                return newBuffer;
+            }
+
+            // rIndex <= lIndex, return nothing
+            return Buffer("");
+
+        } else if (range.size() == 3) {
+            lIndex = *(pRange++);
+            rIndex = *(pRange++);
+            step   = *(pRange++);
+
+            lIndex = filterAndConvertIndex(lIndex);
+            rIndex = filterAndConvertIndex(rIndex);
+            if (lIndex < rIndex) {
+                if (step <= 0) {
+                    cerr << "[ ! ] Error: Buffer.h: operator[]: step should be a positive number." << endl;
+                    exit(BUFFER_ERROR_CODE);
+                }
+
+                Buffer newBuffer((rIndex-lIndex)/step + bool((rIndex-lIndex)%step));
+                for (int i=lIndex, j=0;  i < rIndex;  i+=step, j++)
+                    newBuffer.head[j] = this->head[i];
+                return newBuffer;
+            }
+
+            // rIndex <= lIndex, return nothing
+            return Buffer("");
+        }
+
+        cerr << "[ ! ] Error: Buffer.h: operator[]: NotImplementedError" << endl;
+        exit(NOT_IMPLEMENTED_ERROR_CODE);
     }
     
     u_char* data()
@@ -574,7 +639,7 @@ public:
         return hexResult;
     }
 
-    void fromHex(string hexString)
+    static Buffer fromHex(string hexString)
     {
         // Sanity check...
         if (hexString.length() % 2 != 0) {
@@ -584,8 +649,7 @@ public:
 
         // Set size.
         int numBytes = hexString.length() / 2;
-        this->reallocate(numBytes);
-        this->size = numBytes;
+        Buffer newBuffer(numBytes);
 
         // Loop through hex string...
         unsigned char byte;
@@ -609,8 +673,10 @@ public:
                 }
             }
 
-            this->head[i] = byte;
+            newBuffer.head[i] = byte;
         }
+
+        return newBuffer;
     }
 
     

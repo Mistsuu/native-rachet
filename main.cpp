@@ -7,13 +7,22 @@
 #include <iostream>
 #include "Utils/Utils.h"
 #include "Crypto/x3DH.h"
-#include "Crypto/Hash/HMAC_SHA256.h"
+#include "Crypto/Hash/HKDF.h"
 
 using namespace std;
 
 int main(int argc, char** argv)
 {
-    HMAC_SHA256().digest(Buffer("key"), Buffer("The quick brown fox jumps over the lazy dog")).__debug__();
+    HKDF(
+        42,
+        Buffer::fromHex("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b"),
+        Buffer::fromHex("000102030405060708090a0b0c"),
+        Buffer::fromHex("f0f1f2f3f4f5f6f7f8f9")
+    ).__debug__();
+
+    Buffer::fromHex("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b").__debug__();
+    Buffer::fromHex("000102030405060708090a0b0c").__debug__();
+    Buffer::fromHex("f0f1f2f3f4f5f6f7f8f9").__debug__();
 }
 
 // ----------------------------------------------------------------------------------------------------------/-

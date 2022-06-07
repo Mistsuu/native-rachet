@@ -2,6 +2,7 @@
 
 #include "../Utils/Utils.h"
 #include "Hash/SHA256.h"
+#include "Hash/HKDF.h"
 #include "ProtocolSetting.h"
 
 class x3DHPreKeyBundle

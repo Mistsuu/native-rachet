@@ -4,16 +4,18 @@
 
 class HMAC
 {
-    void padKey(Buffer key)
+    Buffer padKey(Buffer key)
     {
         cerr << "[ ! ] Error! HMAC.h: padKey(Buffer key) is not implemented." << endl;
         exit(NOT_IMPLEMENTED_ERROR_CODE);
+        return Buffer();
     }
 
-    void padKey(string key)
+    Buffer padKey(string key)
     {
         cerr << "[ ! ] Error! HMAC.h: padKey(string key) is not implemented." << endl;
         exit(NOT_IMPLEMENTED_ERROR_CODE);
+        return Buffer();
     }
 
 
@@ -22,53 +24,61 @@ public:
     uint outputSize;
 
 
-    void digest(Buffer key, Buffer msg)
+    Buffer digest(Buffer key, Buffer msg)
     {
         cerr << "[ ! ] Error! HMAC.h: digest(Buffer key, Buffer msg) is not implemented." << endl;
         exit(NOT_IMPLEMENTED_ERROR_CODE);
+        return Buffer();
     }
 
-    void digest(string key, Buffer msg)
+    Buffer digest(string key, Buffer msg)
     {
         cerr << "[ ! ] Error! HMAC.h: digest(string key, Buffer msg) is not implemented." << endl;
         exit(NOT_IMPLEMENTED_ERROR_CODE);
+        return Buffer();
     }
 
-    void digest(Buffer key, string msg)
+    Buffer digest(Buffer key, string msg)
     {
         cerr << "[ ! ] Error! HMAC.h: digest(Buffer key, string msg) is not implemented." << endl;
         exit(NOT_IMPLEMENTED_ERROR_CODE);
+        return Buffer();
     }
 
-    void digest(string key, string msg)
+    Buffer digest(string key, string msg)
     {
         cerr << "[ ! ] Error! HMAC.h: digest(string key, string msg) is not implemented." << endl;
         exit(NOT_IMPLEMENTED_ERROR_CODE);
+        return Buffer();
     }
 
 
 
-    void hexDigest(Buffer key, Buffer msg)
+    string hexDigest(Buffer key, Buffer msg)
     {
         cerr << "[ ! ] Error! HMAC.h: hexDigest(Buffer key, Buffer msg) is not implemented." << endl;
         exit(NOT_IMPLEMENTED_ERROR_CODE);
+        return "";
     }
 
-    void hexDigest(string key, Buffer msg)
+    string hexDigest(string key, Buffer msg)
     {
         cerr << "[ ! ] Error! HMAC.h: hexDigest(string key, Buffer msg) is not implemented." << endl;
         exit(NOT_IMPLEMENTED_ERROR_CODE);
+        return "";
     }
 
-    void hexDigest(Buffer key, string msg)
+    string hexDigest(Buffer key, string msg)
     {
         cerr << "[ ! ] Error! HMAC.h: hexDigest(Buffer key, string msg) is not implemented." << endl;
         exit(NOT_IMPLEMENTED_ERROR_CODE);
+        return "";
     }
 
-    void hexDigest(string key, string msg)
+    string hexDigest(string key, string msg)
     {
         cerr << "[ ! ] Error! HMAC.h: hexDigest(string key, string msg) is not implemented." << endl;
         exit(NOT_IMPLEMENTED_ERROR_CODE);
+        return "";
     }
 };

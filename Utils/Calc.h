@@ -9,6 +9,14 @@
 
 using namespace std;
 
+int ceildiv(int x, int y)
+{
+    if (x % y == 0)
+        return x / y;
+    else
+        return x / y + 1;
+}
+
 Int pow(Int base, Int exp, Int mod)
 {
     Int result;
