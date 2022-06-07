@@ -1,11 +1,12 @@
 #pragma once
 
 #include "../../Utils/Utils.h"
+#include "Hash.h"
 #include <openssl/sha.h>
 
 using namespace std;
 
-class SHA256Hash
+class SHA256Hash: public Hash
 {
 private:
     SHA256_CTX context;
@@ -90,7 +91,3 @@ public:
     {
     }
 };
-
-Buffer HMAC_SHA256(Buffer message, Buffer key)
-{
-}

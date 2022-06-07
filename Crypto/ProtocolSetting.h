@@ -1,8 +1,4 @@
 #pragma once
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-
-// ----------------------------------------------------------------------------------------------------------\-
 
 #define USING_CURVE25519
 // #define USING_CURVE448
@@ -16,10 +12,10 @@
 // 
 #ifdef USING_CURVE25519             // Implemented.
     #include "Curve/Curve25519.h"
-    typedef Curve25519 Curve;
+    typedef Curve25519 ProtocolCurve;
 #elif USING_CURVE448                // Not implemented yet.
     #include "Curve/Curve448.h"
-    typedef Curve448 Curve;
+    typedef Curve448 ProtocolCurve;
 #endif
 
 
@@ -28,16 +24,11 @@
 //  
 #ifdef USING_SHA512
     #include "Hash/SHA512.h"
-    typedef SHA512Hash HashClass;
+    typedef SHA512Hash ProtocolHash;
 #elif  USING_SHA256
     #include "Hash/SHA256.h"
-    typedef SHA256 HashClass;
+    typedef SHA256 ProtocolHash;
 #elif  USING_ELLIGATOR2
     #include "Hash/Elligator2.h"
-    typedef Elligator2 HashClass;
+    typedef Elligator2 ProtocolHash;
 #endif
-
-
-// ----------------------------------------------------------------------------------------------------------/-
-
-#pragma GCC diagnostic pop
