@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Utils/Buffer.h"
+#include "../../Utils/Utils.h"
 #include <openssl/sha.h>
 
 using namespace std;

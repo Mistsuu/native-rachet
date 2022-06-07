@@ -1,10 +1,6 @@
 #pragma once
 
-#include "../Utils/Type.h"
-#include "../Utils/Calc.h"
-#include "../Utils/Random.h"
-#include "../Utils/Const.h"
-#include "../Utils/Buffer.h"
+#include "../../Utils/Utils.h"
 
 // ============================================== POINT ==============================================
 class Point

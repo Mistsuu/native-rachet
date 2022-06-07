@@ -1,25 +1,11 @@
 #pragma once
 
-#include "../Utils/Type.h"
-#include "../Utils/Calc.h"
-#include "../Utils/Random.h"
-#include "../Utils/Const.h"
-#include "../Utils/Buffer.h"
-
+#include "../../Utils/Utils.h"
 #include "Point.h"
+#include "KeyPair.h"
 #include <iostream>
 
 using namespace std;
-
-
-// ============================================== KEY PAIR ==============================================
-
-class KeyPair 
-{
-public:
-    Point publicKey;
-    Int   privateKey;
-};
 
 // ============================================== CURVE ==============================================
 
@@ -84,7 +70,7 @@ public:
     // ------------------------------ PRINT RELATED ------------------------------
     string info()
     {
-        return "Curve y^2 = x^3 + " + a.get_str() + "x^2 + x mod " + p.get_str();
+        return "Elliptic Curve y^2 = x^3 + " + a.get_str() + "x^2 + x mod " + p.get_str();
     }
 
     // ------------------------------ GENERATE POINTS ------------------------------
