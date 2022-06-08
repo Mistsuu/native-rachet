@@ -180,7 +180,7 @@ public:
         //     P is not infinity
         // Normalized x and just send its coordinate in bytes form, with \x01 at the beginning.
         Int    x               = mod(P.x * inverse(P.z, this->p), this->p);
-        Buffer serializedPoint = intToBuffer(x, this->nbytes) + '\x01';
+        Buffer serializedPoint = Buffer::fromInt(x, this->nbytes) + '\x01';
         return serializedPoint;
 
     }
@@ -202,7 +202,7 @@ public:
 
         // Normal point with Z=1
         if (serializedPoint[-1] == '\x01') {
-            Point P(bufferToInt(serializedPoint.data(), this->nbytes));
+            Point P(bytesToInt(serializedPoint.data(), this->nbytes));
 
             if (!onCurve(P)) {
                 cerr << "[ ! ] Error: Curve25519.h: deserialize(): Invalid buffer: Point not on curve.\n";

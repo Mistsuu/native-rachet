@@ -163,6 +163,7 @@ public:
         this->copyFrom(chr);
     }
 
+    
     // ----------------------------- JUST CLEANUP -----------------------------
     void cleanMemory()
     {
@@ -179,6 +180,17 @@ public:
         if (this->head)
             memset(this->head, 0, this->size);
     }
+
+    
+    // ----------------------------- PUBLIC MEM MANAGER -----------------------------
+    void resize(uint size)
+    {
+        if (this->size < size)
+            this->reallocate(size);
+        else
+            this->size = size;
+    }
+
 
     // ----------------------------- LADD+= -----------------------------
     void operator+= (Buffer const &buf)
@@ -462,8 +474,10 @@ public:
             cerr << "[ ! ] Error: Buffer.h: operator*=(): Trying to multiply buffer with negative number!" << endl;
             exit(BUFFER_ERROR_CODE);
         }
-        if (!noDup || !this->size) 
-            return this->cleanMemory();
+        if (!noDup || !this->size) {
+            this->reallocate(0);
+            return;
+        }
         if (noDup == 1)
             return;
 
@@ -687,6 +701,56 @@ public:
         return newBuffer;
     }
 
+    // ----------------------------- NUM UTILS -----------------------------
+    static Buffer fromInt(Int num, uint size, bool bigEndian=true)
+    {
+        uint   numBytes = mpz_sizeinbase(num.get_mpz_t(), 256);
+        Buffer outputBuffer(max(numBytes, size));
+        outputBuffer.zeroAll();
+
+        if (numBytes >= size || !bigEndian) {
+            mpz_export(
+                outputBuffer.data(), 
+                NULL, 
+                1, 
+                1, 
+                (bigEndian ? 1:-1), 
+                0, 
+                num.get_mpz_t()
+            );
+        } else {
+            mpz_export(
+                &(outputBuffer.data()[size - numBytes]), 
+                NULL, 
+                1, 
+                1, 
+                (bigEndian ? 1:-1), 
+                0, 
+                num.get_mpz_t()
+            );
+        }
+
+        return outputBuffer;
+    }
+
+    Int toInt(bool bigEndian=true)
+    {
+        if (!this->size)
+            return Int(0);
+
+        Int result;
+        mpz_import(
+            result.get_mpz_t(),
+            this->size,
+            1,
+            1,
+            (bigEndian ? 1:-1),
+            0,
+            this->head
+        );
+        return result;
+    }
+
     
     // ----------------------------- SMART POINTER -----------------------------
     ~Buffer()
@@ -888,53 +952,7 @@ Buffer operator^ (char chr, Buffer buf)
 }
 
 // ----------------------------- CONVERSIONS -----------------------------
-Buffer intToBuffer(Int x, uint size, bool bigEndian=true)
-{
-    uint   numBytes = mpz_sizeinbase(x.get_mpz_t(), 256);
-    Buffer outputBuffer(max(numBytes, size));
-    outputBuffer.zeroAll();
-
-    if (numBytes >= size || !bigEndian) {
-        mpz_export(
-            outputBuffer.data(), 
-            NULL, 
-            1, 
-            1, 
-            (bigEndian ? 1:-1), 
-            0, 
-            x.get_mpz_t()
-        );
-    } else {
-        mpz_export(
-            &(outputBuffer.data()[size - numBytes]), 
-            NULL, 
-            1, 
-            1, 
-            (bigEndian ? 1:-1), 
-            0, 
-            x.get_mpz_t()
-        );
-    }
-
-    return outputBuffer;
-}
-
-Int bufferToInt(Buffer bufferInt, bool bigEndian=true)
-{
-    Int result;
-    mpz_import(
-        result.get_mpz_t(),
-        bufferInt.len(),
-        1,
-        1,
-        (bigEndian ? 1:-1),
-        0,
-        bufferInt.data()
-    );
-    return result;
-}
-
-Int bufferToInt(u_char* bufferInt, int size, bool bigEndian=true)
+Int bytesToInt(u_char* bufferInt, int size, bool bigEndian=true)
 {
     Int result;
     mpz_import(
