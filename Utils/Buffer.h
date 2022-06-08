@@ -49,11 +49,6 @@ private:
 
     void copyFrom(string const &str)
     {
-        if (!str.size()) {
-            this->size = 0;
-            return;
-        }
-
         this->reallocate(str.size());
         this->size = str.size();
         if (str.size())
