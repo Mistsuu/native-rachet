@@ -199,8 +199,7 @@ public:
             return;
         
         uint newSize = this->size + buf.size;
-        if (newSize > this->actualSize)
-            this->reallocate(newSize);
+        this->reallocate(newSize);
 
         memcpy(&this->head[this->size], buf.head, buf.size);
         this->size = newSize;
@@ -212,8 +211,7 @@ public:
             return;
 
         uint newSize = this->size + str.size();
-        if (newSize > this->actualSize)
-            this->reallocate(newSize);
+        this->reallocate(newSize);
 
         memcpy(&this->head[this->size], str.c_str(), str.size());
         this->size = newSize;
@@ -221,9 +219,7 @@ public:
 
     void operator+= (char chr)
     {
-        if (this->size + 1 > this->actualSize)
-            this->reallocate(this->size + 1);
-
+        this->reallocate(this->size + 1);
         this->head[this->size] = chr;
         this->size++;
     }
