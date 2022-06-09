@@ -86,11 +86,7 @@ public:
         newKeyPair.publicKey  = xMUL(this->G, newKeyPair.privateKey);
         return newKeyPair;
     }
-
-    Point calculateSharedSecret(Int ourPrivateKey, Point& theirPublicKey)
-    {
-        return xMUL(theirPublicKey, ourPrivateKey);
-    }
+    
 
     // ------------------------------ ARITHMETICS ------------------------------
     bool onCurve(Point& P)

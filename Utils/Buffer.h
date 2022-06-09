@@ -103,7 +103,7 @@ public:
         this->head       = NULL;
         this->size       = 0;
         this->actualSize = 0;
-        this->copyFrom(buf);
+        this->set(buf);
     }
 
     Buffer(string const &str)
@@ -111,7 +111,7 @@ public:
         this->head       = NULL;
         this->size       = 0;
         this->actualSize = 0;
-        this->copyFrom(str);
+        this->set(str);
     }
 
     Buffer(char* str, uint size)
@@ -119,7 +119,7 @@ public:
         this->head       = NULL;
         this->size       = 0;
         this->actualSize = 0;
-        this->copyFrom(str, size);
+        this->set(str, size);
     }
 
     Buffer(char chr)
@@ -156,28 +156,28 @@ public:
     
 
     // ----------------------------- TEMPLATES FOR EQ= & CONSTRUCTOR WITH ARGS() -----------------------------
-    void copyFrom(Buffer const &buf)
+    void set(Buffer const &buf)
     {
         this->resize(buf.size);
         if (buf.size)
             memcpy(this->head, buf.head, buf.size);
     }
 
-    void copyFrom(string const &str)
+    void set(string const &str)
     {
         this->resize(str.size());
         if (str.size())
             memcpy(this->head, str.c_str(), str.size());
     }
 
-    void copyFrom(char* str, uint size)
+    void set(char* str, uint size)
     {
         this->resize(size);
         if (size)
             memcpy(this->head, str, size);
     }
 
-    void copyFrom(char chr)
+    void set(char chr)
     {
         this->resize(1);
         this->head[0] = chr;
@@ -422,17 +422,17 @@ public:
     // ----------------------------- ASSIGN= -----------------------------
     void operator= (Buffer const &buf)
     {
-        this->copyFrom(buf);
+        this->set(buf);
     }
 
     void operator= (string const &str)
     {
-        this->copyFrom(str);
+        this->set(str);
     }
 
     void operator= (char chr)
     {
-        this->copyFrom(chr);
+        this->set(chr);
     }
 
 
@@ -444,7 +444,7 @@ public:
             exit(BUFFER_ERROR_CODE);
         }
         if (!noDup || !this->size)
-            return Buffer(0);
+            return Buffer();
         if (noDup == 1)
             return Buffer(*this);
 
@@ -793,7 +793,7 @@ Buffer operator* (int noDup, Buffer buf)
         exit(BUFFER_ERROR_CODE);
     }
     if (!noDup || !buf.len())
-        return Buffer(0);
+        return Buffer();
     if (noDup == 1)
         return Buffer(buf);
 

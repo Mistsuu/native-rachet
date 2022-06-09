@@ -18,5 +18,5 @@ Buffer HKDF(int length, Buffer inputKeyMaterial, Buffer salt, Buffer info)
         outputKeyMaterial += tmp;
     }
 
-    return outputKeyMaterial[{0, length}];
+    return outputKeyMaterial[{length}];
 }

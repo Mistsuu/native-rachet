@@ -42,12 +42,17 @@ public:
         );
     }
 
+    Point calculateSharedSecret(Int ourPrivateKey, Point& theirPublicKey)
+    {
+        return curve.xMUL(theirPublicKey, ourPrivateKey);
+    }
+
     Buffer calculateSecret(x3DHEncryptKeyBundleA ourKey, x3DHEncryptKeyBundleB theirKey)
     {
-        Buffer DH1 = curve.serialize(curve.calculateSharedSecret(ourKey.identityKey.privateKey,  theirKey.signedPreKey.publicKey));
-        Buffer DH2 = curve.serialize(curve.calculateSharedSecret(ourKey.ephemeralKey.privateKey, theirKey.identityKey.publicKey));
-        Buffer DH3 = curve.serialize(curve.calculateSharedSecret(ourKey.ephemeralKey.privateKey, theirKey.signedPreKey.publicKey));
-        Buffer DH4 = curve.serialize(curve.calculateSharedSecret(ourKey.ephemeralKey.privateKey, theirKey.oneTimePreKey.publicKey));
+        Buffer DH1 = curve.serialize(this->calculateSharedSecret(ourKey.identityKey.privateKey,  theirKey.signedPreKey.publicKey));
+        Buffer DH2 = curve.serialize(this->calculateSharedSecret(ourKey.ephemeralKey.privateKey, theirKey.identityKey.publicKey));
+        Buffer DH3 = curve.serialize(this->calculateSharedSecret(ourKey.ephemeralKey.privateKey, theirKey.signedPreKey.publicKey));
+        Buffer DH4 = curve.serialize(this->calculateSharedSecret(ourKey.ephemeralKey.privateKey, theirKey.oneTimePreKey.publicKey));
         return KDF((DH1 + DH2) + (DH3 + DH4));
     }
 
