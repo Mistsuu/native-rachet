@@ -10,4 +10,3 @@
 // --- KEY RELATED ---
 #define PRIVATE_KEY_NULL           -1
 #define ONETIME_PREKEYS_BATCH_SIZE 100
-#define KDF_INFO                   "mistsuuu_x3dhhh_ahhhhhh!!!"

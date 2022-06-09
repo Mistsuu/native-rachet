@@ -32,21 +32,27 @@ public:
 class x3DHClass {
 public:
     static ProtocolCurve curve;
-    // Buffer KDF()
-    // {
-    // }
+    Buffer KDF(Buffer keyMaterial)
+    {
+        return HKDF(
+            32, 
+            F + keyMaterial,
+            Buffer(""),
+            KDF_INFO
+        );
+    }
 
-    // Buffer calculateSecret(x3DHEncryptKeyBundleA ourKey, x3DHEncryptKeyBundleB theirKey)
-    // {
-    //     Buffer DH1 = curve.serialize(curve.calculateSharedSecret(ourKey.identityKey.privateKey,  theirKey.signedPreKey.publicKey));
-    //     Buffer DH2 = curve.serialize(curve.calculateSharedSecret(ourKey.ephemeralKey.privateKey, theirKey.identityKey.publicKey));
-    //     Buffer DH3 = curve.serialize(curve.calculateSharedSecret(ourKey.ephemeralKey.privateKey, theirKey.signedPreKey.publicKey));
-    //     Buffer DH4 = curve.serialize(curve.calculateSharedSecret(ourKey.ephemeralKey.privateKey, theirKey.oneTimePreKey.publicKey));
-    //     return KDF(DH1 + DH2 + DH3 + DH4).digest();
-    // }
+    Buffer calculateSecret(x3DHEncryptKeyBundleA ourKey, x3DHEncryptKeyBundleB theirKey)
+    {
+        Buffer DH1 = curve.serialize(curve.calculateSharedSecret(ourKey.identityKey.privateKey,  theirKey.signedPreKey.publicKey));
+        Buffer DH2 = curve.serialize(curve.calculateSharedSecret(ourKey.ephemeralKey.privateKey, theirKey.identityKey.publicKey));
+        Buffer DH3 = curve.serialize(curve.calculateSharedSecret(ourKey.ephemeralKey.privateKey, theirKey.signedPreKey.publicKey));
+        Buffer DH4 = curve.serialize(curve.calculateSharedSecret(ourKey.ephemeralKey.privateKey, theirKey.oneTimePreKey.publicKey));
+        return KDF((DH1 + DH2) + (DH3 + DH4));
+    }
 
-    // Buffer calculateAssociatedData(x3DHEncryptKeyBundleA ourKey, x3DHEncryptKeyBundleB theirKey)
-    // {
-    //     return curve.serialize(ourKey.identityKey.publicKey) + curve.serialize(theirKey.identityKey.publicKey);
-    // }
+    Buffer calculateAssociatedData(x3DHEncryptKeyBundleA ourKey, x3DHEncryptKeyBundleB theirKey)
+    {
+        return curve.serialize(ourKey.identityKey.publicKey) + curve.serialize(theirKey.identityKey.publicKey);
+    }
 };

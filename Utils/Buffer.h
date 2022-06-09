@@ -20,6 +20,10 @@ private:
     //                  (could be experimented to have more fun :))
     void reallocate(uint size)
     {   
+        // Size is 0, why care...?
+        if (!size)
+            return;
+
         // Allocate needed
         if (!this->head) {
             this->head       = (u_char*)malloc(size);
@@ -36,38 +40,6 @@ private:
             cerr << "[ ! ] Critical Error: Buffer.h: reallocate(): Allocation failed." << endl;
             exit(BUFFER_ERROR_CODE);
         }
-    }
-
-    // ----------------------------- TEMPLATES FOR EQ= & CONSTRUCTOR WITH ARGS() -----------------------------
-    void copyFrom(Buffer const &buf)
-    {
-        this->reallocate(buf.size);
-        this->size = buf.size;
-        if (buf.size)
-            memcpy(this->head, buf.head, buf.size);
-    }
-
-    void copyFrom(string const &str)
-    {
-        this->reallocate(str.size());
-        this->size = str.size();
-        if (str.size())
-            memcpy(this->head, str.c_str(), str.size());
-    }
-
-    void copyFrom(char* str, uint size)
-    {
-        this->reallocate(size);
-        this->size = size;
-        if (size)
-            memcpy(this->head, str, size);
-    }
-
-    void copyFrom(char chr)
-    {
-        this->reallocate(1);
-        this->size = 1;
-        this->head[0] = chr;
     }
 
 
@@ -152,14 +124,13 @@ public:
 
     Buffer(char chr)
     {
-        this->head       = NULL;
-        this->size       = 0;
-        this->actualSize = 0;
-        this->copyFrom(chr);
+        this->head       = (u_char*)malloc(1);
+        this->size       = 1;
+        this->actualSize = 1;
     }
 
-    
-    // ----------------------------- JUST CLEANUP -----------------------------
+
+    // ----------------------------- PUBLIC MEM MANAGER -----------------------------
     void cleanMemory()
     {
         if (this->head) {
@@ -176,14 +147,40 @@ public:
             memset(this->head, 0, this->size);
     }
 
-    
-    // ----------------------------- PUBLIC MEM MANAGER -----------------------------
-    void resize(uint size)
+    inline void resize(uint size)
     {
-        if (this->size < size)
-            this->reallocate(size);
-        else
-            this->size = size;
+        this->reallocate(size);
+        this->size = size;
+    }
+
+    
+
+    // ----------------------------- TEMPLATES FOR EQ= & CONSTRUCTOR WITH ARGS() -----------------------------
+    void copyFrom(Buffer const &buf)
+    {
+        this->resize(buf.size);
+        if (buf.size)
+            memcpy(this->head, buf.head, buf.size);
+    }
+
+    void copyFrom(string const &str)
+    {
+        this->resize(str.size());
+        if (str.size())
+            memcpy(this->head, str.c_str(), str.size());
+    }
+
+    void copyFrom(char* str, uint size)
+    {
+        this->resize(size);
+        if (size)
+            memcpy(this->head, str, size);
+    }
+
+    void copyFrom(char chr)
+    {
+        this->resize(1);
+        this->head[0] = chr;
     }
 
 
@@ -215,8 +212,7 @@ public:
     void operator+= (char chr)
     {
         this->reallocate(this->size + 1);
-        this->head[this->size] = chr;
-        this->size++;
+        this->head[this->size++] = chr;
     }
 
     // ----------------------------- LADD+ -----------------------------
@@ -465,12 +461,14 @@ public:
             cerr << "[ ! ] Error: Buffer.h: operator*=(): Trying to multiply buffer with negative number!" << endl;
             exit(BUFFER_ERROR_CODE);
         }
-        if (!noDup || !this->size) {
-            this->reallocate(0);
+
+        if (!this->size || noDup == 1)
+            return;
+
+        if (!noDup) {
+            this->size = 0;
             return;
         }
-        if (noDup == 1)
-            return;
 
         this->reallocate(this->size * noDup);
         for (int i = 1; i < noDup; ++i)
@@ -583,45 +581,49 @@ public:
         auto pRange = range.begin();
 
         if (range.size() == 1) {
-            index  = *(pRange++);
-            return Buffer(this[index]);
+            rIndex = *(pRange++);
+            if (!rIndex)
+                return Buffer();
+            rIndex = filterAndConvertIndex(rIndex-1)+1;
+            return Buffer((char*)this->head, rIndex);
 
         } else if (range.size() == 2) {
             lIndex = *(pRange++);
             rIndex = *(pRange++);
 
             lIndex = filterAndConvertIndex(lIndex);
-            rIndex = filterAndConvertIndex(rIndex);
-            if (lIndex < rIndex) {
-                Buffer newBuffer(rIndex-lIndex);
-                memcpy(newBuffer.head, &this->head[lIndex], rIndex-lIndex);
-                return newBuffer;
-            }
-
-            // rIndex <= lIndex, return nothing
-            return Buffer("");
+            if (rIndex)
+                rIndex = filterAndConvertIndex(rIndex-1)+1;
+            if (lIndex < rIndex)
+                return Buffer((char*)&this->head[lIndex], rIndex-lIndex);
+            return Buffer();
 
         } else if (range.size() == 3) {
             lIndex = *(pRange++);
             rIndex = *(pRange++);
             step   = *(pRange++);
 
+            // Filter indices
             lIndex = filterAndConvertIndex(lIndex);
-            rIndex = filterAndConvertIndex(rIndex);
-            if (lIndex < rIndex) {
-                if (step <= 0) {
-                    cerr << "[ ! ] Error: Buffer.h: operator[]: step should be a positive number." << endl;
-                    exit(BUFFER_ERROR_CODE);
-                }
+            if (rIndex)
+                rIndex = filterAndConvertIndex(rIndex-1)+1;
 
-                Buffer newBuffer((rIndex-lIndex)/step + bool((rIndex-lIndex)%step));
-                for (int i=lIndex, j=0;  i < rIndex;  i+=step, j++)
-                    newBuffer.head[j] = this->head[i];
-                return newBuffer;
+            // Return empty buffer if lIndex >= rIndex
+            if (lIndex >= rIndex) 
+                return Buffer();
+
+            // Check if valid step
+            if (step <= 0) {
+                cerr << "[ ! ] Error: Buffer.h: operator[]: step should be a positive number." << endl;
+                exit(BUFFER_ERROR_CODE);
             }
 
-            // rIndex <= lIndex, return nothing
-            return Buffer("");
+            // Do some memory copying without not sure if this is
+            // optimised enough...
+            Buffer newBuffer((rIndex-lIndex)/step + bool((rIndex-lIndex)%step));
+            for (int i=lIndex, j=0;  i < rIndex;  i+=step, j++)
+                newBuffer.head[j] = this->head[i];
+            return newBuffer;
         }
 
         cerr << "[ ! ] Error: Buffer.h: operator[]: NotImplementedError" << endl;
