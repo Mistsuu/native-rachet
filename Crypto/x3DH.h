@@ -3,7 +3,7 @@
 #include "../Utils/Utils.h"
 #include "Hash/SHA256.h"
 #include "Hash/HKDF.h"
-#include "ProtocolSetting.h"
+#include "x3DHProtocolSetting.h"
 
 class x3DHPreKeyBundle
 {
@@ -42,17 +42,34 @@ public:
         );
     }
 
-    Point calculateSharedSecret(Int ourPrivateKey, Point& theirPublicKey)
+    KeyPair generateKeyPair()
     {
+        KeyPair newKeyPair;
+        newKeyPair.privateKey = randbelow(curve.generatorOrder());
+        newKeyPair.publicKey  = curve.xMUL(curve.generatorPoint(), newKeyPair.privateKey);
+        return newKeyPair;
+    }
+
+    Buffer sign(KeyPair signKey, Buffer message, Buffer randomData)
+    {
+        
+    }
+
+    Point calculateDHSharedSecret(Int ourPrivateKey, Point& theirPublicKey)
+    {
+        if (ourPrivateKey == PRIVATE_KEY_NULL) {
+            cerr << "[ ! ] Error! x3DH.h: calculateDHSharedSecret(): Private key is empty!" << endl;
+            exit(EMPTY_KEY_ERROR_CODE);
+        }
         return curve.xMUL(theirPublicKey, ourPrivateKey);
     }
 
-    Buffer calculateSecret(x3DHEncryptKeyBundleA ourKey, x3DHEncryptKeyBundleB theirKey)
+    Buffer calculateSharedSecret(x3DHEncryptKeyBundleA ourKey, x3DHEncryptKeyBundleB theirKey)
     {
-        Buffer DH1 = curve.serialize(this->calculateSharedSecret(ourKey.identityKey.privateKey,  theirKey.signedPreKey.publicKey));
-        Buffer DH2 = curve.serialize(this->calculateSharedSecret(ourKey.ephemeralKey.privateKey, theirKey.identityKey.publicKey));
-        Buffer DH3 = curve.serialize(this->calculateSharedSecret(ourKey.ephemeralKey.privateKey, theirKey.signedPreKey.publicKey));
-        Buffer DH4 = curve.serialize(this->calculateSharedSecret(ourKey.ephemeralKey.privateKey, theirKey.oneTimePreKey.publicKey));
+        Buffer DH1 = curve.serialize(this->calculateDHSharedSecret(ourKey.identityKey.privateKey,  theirKey.signedPreKey.publicKey));
+        Buffer DH2 = curve.serialize(this->calculateDHSharedSecret(ourKey.ephemeralKey.privateKey, theirKey.identityKey.publicKey));
+        Buffer DH3 = curve.serialize(this->calculateDHSharedSecret(ourKey.ephemeralKey.privateKey, theirKey.signedPreKey.publicKey));
+        Buffer DH4 = curve.serialize(this->calculateDHSharedSecret(ourKey.ephemeralKey.privateKey, theirKey.oneTimePreKey.publicKey));
         return KDF((DH1 + DH2) + (DH3 + DH4));
     }
 

@@ -6,6 +6,7 @@
 #define BUFFER_ERROR_CODE          -3
 #define INVALID_KEYPAIR_ERROR_CODE -4
 #define NOT_IMPLEMENTED_ERROR_CODE -5
+#define EMPTY_KEY_ERROR_CODE       -6
 
 // --- KEY RELATED ---
 #define PRIVATE_KEY_NULL           -1

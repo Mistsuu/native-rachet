@@ -15,9 +15,12 @@ private:
     Int   a;      // Params in y^2 = x^3 + ax^2 + x 
     Int   p;      //           mod p
     Point G;      // Generator point.
-    Int   Gorder; // Order of generator point.
-    uint  nbits;
-    uint  nbytes;
+    Int   q;      // Order of generator point.
+    uint  lp;     // Bit length of p (|p|)
+    uint  lq;     // Bit length of q (|q|)
+    uint  pbytes; // defined as ceil((|p| + 1)/8)
+    uint  b;      // defined as 8 * ( ceil((|p| + 1)/8) )
+    Int   d;      // d in equivalent Edward form: dx^2y^2 + 1 = -x^2 + y^2
 
     // ---------------- ARITHMETICS BUT NO CHECK BEFORE USE ----------------
     Point xADD__unsafe__(Point& P, Point& Q, Point& P_Q)
@@ -62,31 +65,50 @@ public:
        this->a       = "486662";
        this->p       = "57896044618658097711785492504343953926634992332820282019728792003956564819949";
        this->G       = Point(9);
-       this->Gorder  = "7237005577332262213973186563042994240857116359379907606001950938285454250989";
-       this->nbits   = bitLength(this->p);
-       this->nbytes  = (this->nbits >> 3) + bool(this->nbits & 7);
+       this->q       = "7237005577332262213973186563042994240857116359379907606001950938285454250989";
+       this->lp      = bitLength(this->p);
+       this->lq      = bitLength(this->q);
+       this->pbytes  = (this->lp >> 3) + bool(this->lp & 7);
+       this->b       = this->pbytes << 3;
+       this->d       = mod((this->p - 121665) * inverse(121666, this->p), this->p);
     }
 
-    // ------------------------------ PRINT RELATED ------------------------------
+    // ------------------------------ DATA ABOUT CURVE ------------------------------
     string info()
     {
         return "Elliptic Curve y^2 = x^3 + " + a.get_str() + "x^2 + x mod " + p.get_str();
     }
 
-    // ------------------------------ GENERATE POINTS ------------------------------
     Point generatorPoint()
     {
         return G;
     }
 
-    KeyPair generateKeyPair()
+    Int generatorOrder()
     {
-        KeyPair newKeyPair;
-        newKeyPair.privateKey = randbelow(this->Gorder);
-        newKeyPair.publicKey  = xMUL(this->G, newKeyPair.privateKey);
-        return newKeyPair;
+        return this->q;
     }
-    
+
+    Int modulus()
+    {
+        return this->p;
+    }
+
+    Int mongomeryCoef()
+    {
+        return this->a;
+    }
+
+    Int edwardsCoef()
+    {
+        return this->d;
+    }
+
+    Int pBitLength()
+    {
+        return this->lp;
+    }
+
 
     // ------------------------------ ARITHMETICS ------------------------------
     bool onCurve(Point& P)
@@ -102,7 +124,7 @@ public:
         return isQuadraticResidue(y2, this->p);
     }
 
-    Point xMUL(Point& P, Int n)
+    Point xMUL(Point P, Int n)
     {
         if (!onCurve(P)) {
             cerr << "[ ! ] Error: Curve25519.h: xMUL(): Point is not on curve.\n";
@@ -166,7 +188,7 @@ public:
 
         // Create buffer;
         if (!P.z) {
-            Buffer serializedInfinityPoint(this->nbytes + 1);
+            Buffer serializedInfinityPoint(this->pbytes + 1);
             serializedInfinityPoint.zeroAll();
             return serializedInfinityPoint;
         }
@@ -176,7 +198,7 @@ public:
         //     P is not infinity
         // Normalized x and just send its coordinate in bytes form, with \x01 at the beginning.
         Int    x               = mod(P.x * inverse(P.z, this->p), this->p);
-        Buffer serializedPoint = Buffer::fromInt(x, this->nbytes) + '\x01';
+        Buffer serializedPoint = Buffer::fromInt(x, this->pbytes) + '\x01';
         return serializedPoint;
 
     }
@@ -184,8 +206,8 @@ public:
     Point deserialize(Buffer serializedPoint)
     {
         // Catch invalid length input!
-        if (serializedPoint.len() != this->nbytes + 1) {
-            cerr << "[ ! ] Error: Curve25519.h: deserialize(): Invalid buffer: Length incorrect: " << serializedPoint.len() << " instead of " << this->nbytes + 1 << "\n";
+        if (serializedPoint.len() != this->pbytes + 1) {
+            cerr << "[ ! ] Error: Curve25519.h: deserialize(): Invalid buffer: Length incorrect: " << serializedPoint.len() << " instead of " << this->pbytes + 1 << "\n";
             cerr << "[ ! ]     buffer.hex(): " << serializedPoint.toHex() << endl;
             exit(INVALID_POINT_ERROR_CODE);
         }
@@ -198,7 +220,7 @@ public:
 
         // Normal point with Z=1
         if (serializedPoint[-1] == '\x01') {
-            Point P(bytesToInt(serializedPoint.data(), this->nbytes));
+            Point P(bytesToInt(serializedPoint.data(), this->pbytes));
 
             if (!onCurve(P)) {
                 cerr << "[ ! ] Error: Curve25519.h: deserialize(): Invalid buffer: Point not on curve.\n";

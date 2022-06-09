@@ -1,12 +1,12 @@
 #pragma once
 
 #include "../../Utils/Utils.h"
-#include "Hash.h"
+#include "BaseHash.h"
 #include <openssl/sha.h>
 
 using namespace std;
 
-class SHA256Hash: public Hash
+class SHA256Hash: public BaseHash
 {
 private:
     SHA256_CTX context;
