@@ -50,10 +50,18 @@ public:
         return newKeyPair;
     }
 
-    Buffer sign(KeyPair signKey, Buffer message, Buffer randomData)
-    {
+    // Buffer hashI(uint i, Buffer input)
+    // {
+    //     Buffer head = Buffer::fromInt(Int(2) << curve.curveBitLength() - 1 - i);
+    //     return ProtocolHash(head + input).digest();
+    // }
+
+
+    // XEdDSA but I'm just too lazy...
+    // Buffer XMoDSA(KeyPair signKey, Buffer message, Buffer randomData)
+    // {
         
-    }
+    // }
 
     Point calculateDHSharedSecret(Int ourPrivateKey, Point& theirPublicKey)
     {

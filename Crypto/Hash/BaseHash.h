@@ -4,6 +4,13 @@
 
 class BaseHash
 {
+protected:
+    BaseHash()
+    {
+        // This is put as protected to prevent it from being called
+        // publicly.
+    }
+
 public:
     void digest()
     {

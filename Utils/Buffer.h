@@ -61,7 +61,6 @@ public:
         cout << "[ i ] Size:        " << dec << this->size << endl;
         cout << "[ i ] Actual size: " << this->actualSize << endl;
         cout << "------------------- </debug buffer> -----------------------" << endl;
-
     }
 
     // ----------------------------- CONSTRUCTORS() -----------------------------

@@ -14,6 +14,9 @@
 // #define USING_SHA256
 // #define USING_ELLIGATOR2
 
+// ------------------------ key batch settings ---------------------------
+#define ONETIME_PREKEYS_BATCH_SIZE 100
+
 
 
 //

@@ -12,8 +12,8 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-    ProtocolCurve curve;
-    cout << curve.edwardsCoef() << endl;
+    Curve25519 curve;
+    cout << curve.generatorOrder() << endl;
 }
 
 // ----------------------------------------------------------------------------------------------------------/-
