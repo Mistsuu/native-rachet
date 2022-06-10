@@ -50,11 +50,11 @@ public:
         return newKeyPair;
     }
 
-    // Buffer hashI(uint i, Buffer input)
-    // {
-    //     Buffer head = Buffer::fromInt(Int(2) << curve.curveBitLength() - 1 - i);
-    //     return ProtocolHash(head + input).digest();
-    // }
+    Buffer hashI(uint i, Buffer input)
+    {
+        Buffer head = Buffer::fromInt((Int(1) << curve.curveBitLength()) - 1 - i, curve.curveSizeBytes());
+        return ProtocolHash(head + input).digest();
+    }
 
 
     // XEdDSA but I'm just too lazy...

@@ -95,14 +95,19 @@ public:
         return this->d;
     }
 
-    Int pBitLength()
+    uint pBitLength()
     {
         return this->lp;
     }
 
-    Int curveBitLength()
+    uint curveBitLength()
     {
         return this->b;
+    }
+
+    uint curveSizeBytes()
+    {
+        return this->pbytes;
     }
 
 
