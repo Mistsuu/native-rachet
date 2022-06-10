@@ -184,7 +184,7 @@ public:
 
         // Create buffer;
         if (!P.z) {
-            Buffer serializedInfinityPoint(this->pbytes + 1);
+            Buffer serializedInfinityPoint(this->pbytes);
             serializedInfinityPoint.zeroAll();
             return serializedInfinityPoint;
         }
@@ -194,7 +194,8 @@ public:
         //     P is not infinity
         // Normalized x and just send its coordinate in bytes form, with \x01 at the beginning.
         Int    x               = mod(P.x * inverse(P.z, this->p), this->p);
-        Buffer serializedPoint = Buffer::fromInt(x, this->pbytes) + '\x01';
+        Buffer serializedPoint = Buffer::fromInt(x, this->pbytes);
+        serializedPoint[0] ^= 1 << (8 - this->b + this->lp);
         return serializedPoint;
 
     }
@@ -202,7 +203,7 @@ public:
     Point deserialize(Buffer serializedPoint)
     {
         // Catch invalid length input!
-        if (serializedPoint.len() != this->pbytes + 1) {
+        if (serializedPoint.len() != this->pbytes) {
             cerr << "[ ! ] Error: BaseCurve.h: deserialize(): Invalid buffer: Length incorrect: " << serializedPoint.len() << " instead of " << this->pbytes + 1 << "\n";
             cerr << "[ ! ]     buffer.hex(): " << serializedPoint.toHex() << endl;
             exit(INVALID_POINT_ERROR_CODE);
@@ -210,14 +211,18 @@ public:
 
 
         // Infinity, don't give a shit about the rest... (should we...?)
-        if (serializedPoint[-1] == '\x00')
+        if (!(serializedPoint[0] >> (8 - this->b + this->lp)))
             return Point(0, 0);
         
 
         // Normal point with Z=1
-        if (serializedPoint[-1] == '\x01') {
-            Point P(bytesToInt(serializedPoint.data(), this->pbytes));
+        if (serializedPoint[0] >> (8 - this->b + this->lp) == 1) {
 
+            // Filter out higher bits of the first byte.
+            serializedPoint[0] &= ((1 << (8 - this->b + this->lp)) - 1);
+            
+            // 
+            Point P(bytesToInt(serializedPoint.data(), this->pbytes));
             if (!onCurve(P)) {
                 cerr << "[ ! ] Error: BaseCurve.h: deserialize(): Invalid buffer: Point not on curve.\n";
                 cerr << "[ ! ]     buffer.hex(): " << serializedPoint.toHex() << endl;
@@ -230,7 +235,7 @@ public:
 
 
         // Junk buffer detected...?
-        cerr << "[ ! ] Error: BaseCurve.h: deserialize(): Invalid format buffer: Does not end with '\\x01' or '\\x00'.\n";
+        cerr << "[ ! ] Error: BaseCurve.h: deserialize(): Invalid format buffer: The first " << (8 - this->b + this->lp) << " bit(s) is/are not 1 or 0.\n";
         cerr << "[ ! ]     buffer.hex(): " << serializedPoint.toHex() << endl;
         exit(INVALID_POINT_ERROR_CODE);
     }
