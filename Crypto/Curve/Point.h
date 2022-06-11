@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include "../../Utils/Utils.h"
 
 // ============================================== POINT ==============================================
@@ -24,6 +25,11 @@ public:
     {
         this->x = 0;
         this->z = 0;
+    }
+
+    void __debug__()
+    {
+        std::cout << "(" << this->x << ":Y:" << this->z << ")" << std::endl;
     }
 };
 

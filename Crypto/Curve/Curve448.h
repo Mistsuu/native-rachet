@@ -4,12 +4,8 @@
 #include "Point.h"
 #include "KeyPair.h"
 #include "BaseCurve.h"
-#include <iostream>
-
-using namespace std;
 
 // ============================================== CURVE ==============================================
-
 class Curve448: public BaseCurve
 {
 public:

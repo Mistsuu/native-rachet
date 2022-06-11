@@ -4,8 +4,6 @@
 #include "BaseHash.h"
 #include <openssl/sha.h>
 
-using namespace std;
-
 class SHA256Hash: public BaseHash
 {
 private:
