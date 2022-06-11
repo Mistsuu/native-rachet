@@ -22,7 +22,7 @@ public:
         this->q       = "181709681073901722637330951972001133588410340171829515070372549795146003961539585716195755291692375963310293709091662304773755859649779";
         this->lp      = bitLength(this->p);
         this->lq      = bitLength(this->q);
-        this->pbytes  = (this->lp >> 3) + bool(this->lp & 7);
+        this->pbytes  = (this->lp >> 3) + 1;
         this->b       = this->pbytes << 3;
         this->d       = mod(39082 * inverse(39081, this->p), this->p);
     }

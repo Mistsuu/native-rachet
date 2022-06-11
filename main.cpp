@@ -13,7 +13,8 @@ using namespace std;
 int main(int argc, char** argv)
 {
     ProtocolCurve curve;
-    cout << curve.generatorPoint() << endl;
+    curve.serialize(curve.generatorPoint()).__debug__();
+    cout << curve.pBitLength() << endl;
 }
 
 // ----------------------------------------------------------------------------------------------------------/-
