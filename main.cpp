@@ -12,11 +12,7 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-    Curve25519 curve;
-    cout << curve.generatorOrder() << endl;
-    cout << curve.deserialize(curve.serialize(
-        curve.xMUL(curve.generatorPoint(), curve.generatorOrder())
-    )) << endl;
+
 }
 
 // ----------------------------------------------------------------------------------------------------------/-

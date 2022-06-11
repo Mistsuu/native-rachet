@@ -2,7 +2,7 @@
 
 #include "../Utils/Utils.h"
 #include "Hash/SHA256.h"
-#include "Hash/HKDF.h"
+#include "Signing/HKDF.h"
 #include "x3DHProtocolSetting.h"
 
 class x3DHPreKeyBundle
@@ -31,7 +31,8 @@ public:
 
 class x3DHClass {
 public:
-    static ProtocolCurve curve;
+    ProtocolCurve curve;
+
     Buffer KDF(Buffer keyMaterial)
     {
         return HKDF(
@@ -58,10 +59,10 @@ public:
 
 
     // XEdDSA but I'm just too lazy...
-    // Buffer XMoDSA(KeyPair signKey, Buffer message, Buffer randomData)
-    // {
+    Buffer XMoDSA(KeyPair signKey, Buffer message, Buffer randomData)
+    {
         
-    // }
+    }
 
     Point calculateDHSharedSecret(Int ourPrivateKey, Point& theirPublicKey)
     {
