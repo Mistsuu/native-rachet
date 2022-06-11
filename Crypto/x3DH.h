@@ -61,7 +61,6 @@ public:
     // XEdDSA but I'm just too lazy...
     Buffer XMoDSA(KeyPair signKey, Buffer message, Buffer randomData)
     {
-        
     }
 
     Point calculateDHSharedSecret(Int ourPrivateKey, Point& theirPublicKey)
