@@ -3,7 +3,15 @@
 #include <iostream>
 #include "../../Utils/Utils.h"
 
-// ============================================== POINT ==============================================
+// ============================================== POINT ON MONGOMERY CURVE ==============================================
+// =                                                                                                                    =
+// =                                    Given X, Y that satisfy this equation:                                          =
+// =                                        [   Y^2 = X^3 + AX^2 + X    ]                                               =
+// =                          We define a projective point system with x,y,z such that:                                 =
+// =                                            ==>  y=Y, x/z=X  <==                                                    =
+// =                                y is not stored here to perform Mongomery ladder.                                   =
+// =                                                                                                                    =
+// ======================================================================================================================
 class Point
 {
 public:

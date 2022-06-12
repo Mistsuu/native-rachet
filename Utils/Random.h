@@ -59,12 +59,11 @@ Int randbelow(Int n)
     return getrandbits(l) % n;
 }
 
-#define _PRIME_CHECK_THRESHOLD 40
 Int getrandprime(uint nbits)
 {
     Int randomNumber;
     do {
         randomNumber = getrandbits(nbits);
-    } while (!mpz_probab_prime_p(randomNumber.get_mpz_t(), _PRIME_CHECK_THRESHOLD));
+    } while (!isPrime(randomNumber));
     return randomNumber;
 }

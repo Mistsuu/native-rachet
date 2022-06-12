@@ -126,8 +126,8 @@ public:
     Point xMUL(Point P, Int n)
     {
         if (!onCurve(P)) {
-            cerr << "[ ! ] Error: BaseCurve.h: xMUL(): Point is not on curve.\n";
-            cerr << "[ ! ]     P: " << P << endl;
+            std::cerr << "[ ! ] Error: BaseCurve.h: xMUL(): Point is not on curve.\n";
+            std::cerr << "[ ! ]     P: " << P << std::endl;
             exit(INVALID_POINT_ERROR_CODE);
         }
 
@@ -164,8 +164,8 @@ public:
     void normalize(Point* P) 
     {
         if (!onCurve(*P)) {
-            cerr << "[ ! ] Error: BaseCurve.h: normalize(): Point is not on curve.\n";
-            cerr << "[ ! ]     P: " << *P << endl;
+            std::cerr << "[ ! ] Error: BaseCurve.h: normalize(): Point is not on curve.\n";
+            std::cerr << "[ ! ]     P: " << *P << std::endl;
             exit(INVALID_POINT_ERROR_CODE);
         }
 
@@ -179,8 +179,8 @@ public:
     Buffer serialize(Point P)
     {
         if (!onCurve(P)) {
-            cerr << "[ ! ] Error: BaseCurve.h: serialize(): Point is not on curve.\n";
-            cerr << "[ ! ]     P: " << P << endl;
+            std::cerr << "[ ! ] Error: BaseCurve.h: serialize(): Point is not on curve.\n";
+            std::cerr << "[ ! ]     P: " << P << std::endl;
             exit(INVALID_POINT_ERROR_CODE);
         }
 
@@ -207,8 +207,8 @@ public:
     {
         // Catch invalid length input!
         if (serializedPoint.len() != this->pbytes) {
-            cerr << "[ ! ] Error: BaseCurve.h: deserialize(): Invalid buffer: Length incorrect: " << serializedPoint.len() << " instead of " << this->pbytes + 1 << "\n";
-            cerr << "[ ! ]     buffer.hex(): " << serializedPoint.toHex() << endl;
+            std::cerr << "[ ! ] Error: BaseCurve.h: deserialize(): Invalid buffer: Length incorrect: " << serializedPoint.len() << " instead of " << this->pbytes + 1 << "\n";
+            std::cerr << "[ ! ]     buffer.hex(): " << serializedPoint.toHex() << std::endl;
             exit(INVALID_POINT_ERROR_CODE);
         }
 
@@ -227,9 +227,9 @@ public:
             // 
             Point P(bytesToInt(serializedPoint.data(), this->pbytes));
             if (!onCurve(P)) {
-                cerr << "[ ! ] Error: BaseCurve.h: deserialize(): Invalid buffer: Point not on curve.\n";
-                cerr << "[ ! ]     buffer.hex(): " << serializedPoint.toHex() << endl;
-                cerr << "[ ! ]     decoded P:    " << P << endl;
+                std::cerr << "[ ! ] Error: BaseCurve.h: deserialize(): Invalid buffer: Point not on curve.\n";
+                std::cerr << "[ ! ]     buffer.hex(): " << serializedPoint.toHex() << std::endl;
+                std::cerr << "[ ! ]     decoded P:    " << P << std::endl;
                 exit(INVALID_POINT_ERROR_CODE);
             }
 
@@ -238,8 +238,8 @@ public:
 
 
         // Junk buffer detected...?
-        cerr << "[ ! ] Error: BaseCurve.h: deserialize(): Invalid format buffer: The first " << (8 - this->b + this->lp) << " bit(s) is/are not 1 or 0.\n";
-        cerr << "[ ! ]     buffer.hex(): " << serializedPoint.toHex() << endl;
+        std::cerr << "[ ! ] Error: BaseCurve.h: deserialize(): Invalid format buffer: The first " << (8 - this->b + this->lp) << " bit(s) is/are not 1 or 0.\n";
+        std::cerr << "[ ! ]     buffer.hex(): " << serializedPoint.toHex() << std::endl;
         exit(INVALID_POINT_ERROR_CODE);
     }
 

@@ -37,7 +37,7 @@ private:
 
         // If after this, head still returns NULL, exit the program immediately!
         if (!this->head) {
-            cerr << "[ ! ] Critical Error: Buffer.h: reallocate(): Allocation failed." << endl;
+            std::cerr << "[ ! ] Critical Error: Buffer.h: reallocate(): Allocation failed." << std::endl;
             exit(BUFFER_ERROR_CODE);
         }
     }
@@ -46,21 +46,21 @@ private:
 public:
     void __debug__()
     {
-        cout << "------------------- < debug buffer> -----------------------" << endl;
+        cout << "------------------- < debug buffer> -----------------------" << std::endl;
         if (this->head) {
             cout << "[ i ] Data (0->size):       ";
             for (int i = 0; i < this->size; ++i) 
                 cout << setw(2) << setfill('0') << hex << (int)this->head[i];
-            cout << endl;
+            cout << std::endl;
 
             cout << "[ i ] Data (0->actualSize): ";
             for (int i = 0; i < this->actualSize; ++i) 
                 cout << setw(2) << setfill('0') << hex << (int)this->head[i];
-            cout << endl;
+            cout << std::endl;
         }
-        cout << "[ i ] Size:        " << dec << this->size << endl;
-        cout << "[ i ] Actual size: " << this->actualSize << endl;
-        cout << "------------------- </debug buffer> -----------------------" << endl;
+        cout << "[ i ] Size:        " << dec << this->size << std::endl;
+        cout << "[ i ] Actual size: " << this->actualSize << std::endl;
+        cout << "------------------- </debug buffer> -----------------------" << std::endl;
     }
 
     // ----------------------------- CONSTRUCTORS() -----------------------------
@@ -439,7 +439,7 @@ public:
     Buffer operator* (int noDup)
     {
         if (noDup < 0) {
-            cerr << "[ ! ] Error: Buffer.h: operator*(): Trying to multiply buffer with negative number!" << endl;
+            std::cerr << "[ ! ] Error: Buffer.h: operator*(): Trying to multiply buffer with negative number!" << std::endl;
             exit(BUFFER_ERROR_CODE);
         }
         if (!noDup || !this->size)
@@ -457,7 +457,7 @@ public:
     void operator*= (int noDup)
     {
         if (noDup < 0) {
-            cerr << "[ ! ] Error: Buffer.h: operator*=(): Trying to multiply buffer with negative number!" << endl;
+            std::cerr << "[ ! ] Error: Buffer.h: operator*=(): Trying to multiply buffer with negative number!" << std::endl;
             exit(BUFFER_ERROR_CODE);
         }
 
@@ -479,7 +479,7 @@ public:
     Buffer operator^ (Buffer const &buf)
     {
         if (this->size != buf.size) {
-            cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << endl;
+            std::cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
             exit(BUFFER_ERROR_CODE);
         }
 
@@ -492,7 +492,7 @@ public:
     Buffer operator^ (string const &str)
     {
         if (this->size != str.size()) {
-            cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << endl;
+            std::cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
             exit(BUFFER_ERROR_CODE);
         }
 
@@ -505,7 +505,7 @@ public:
     Buffer operator^ (char chr)
     {
         if (this->size != 1) {
-            cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << endl;
+            std::cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
             exit(BUFFER_ERROR_CODE);
         }
 
@@ -516,7 +516,7 @@ public:
     void operator^= (Buffer const &buf)
     {
         if (this->size != buf.size) {
-            cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << endl;
+            std::cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
             exit(BUFFER_ERROR_CODE);
         }
 
@@ -527,7 +527,7 @@ public:
     void operator^= (string const &str)
     {
         if (this->size != str.size()) {
-            cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << endl;
+            std::cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
             exit(BUFFER_ERROR_CODE);
         }
 
@@ -538,7 +538,7 @@ public:
     void operator^= (char chr)
     {
         if (this->size != 1) {
-            cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << endl;
+            std::cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
             exit(BUFFER_ERROR_CODE);
         }
 
@@ -550,7 +550,7 @@ public:
     inline int filterAndConvertIndex(int index)
     {
         if (index >= (int)this->size || index < -((int)(this->size))) {
-            cerr << "[ ! ] Error: Buffer.h: operator[]: Accessing index " << index << " is not allowed, since size = " << this->size << "." << endl;
+            std::cerr << "[ ! ] Error: Buffer.h: operator[]: Accessing index " << index << " is not allowed, since size = " << this->size << "." << std::endl;
             exit(BUFFER_ERROR_CODE);
         }
 
@@ -613,7 +613,7 @@ public:
 
             // Check if valid step
             if (step <= 0) {
-                cerr << "[ ! ] Error: Buffer.h: operator[]: step should be a positive number." << endl;
+                std::cerr << "[ ! ] Error: Buffer.h: operator[]: step should be a positive number." << std::endl;
                 exit(BUFFER_ERROR_CODE);
             }
 
@@ -625,7 +625,7 @@ public:
             return newBuffer;
         }
 
-        cerr << "[ ! ] Error: Buffer.h: operator[]: NotImplementedError" << endl;
+        std::cerr << "[ ! ] Error: Buffer.h: operator[]: NotImplementedError" << std::endl;
         exit(NOT_IMPLEMENTED_ERROR_CODE);
     }
     
@@ -657,7 +657,7 @@ public:
     {
         // Sanity check...
         if (hexString.length() % 2 != 0) {
-            cerr << "[ ! ] Error: Buffer.h: fromHex(): Cannot convert hexstring \"" << hexString << "\" to buffer! Invalid length: " << hexString.length() << endl;
+            std::cerr << "[ ! ] Error: Buffer.h: fromHex(): Cannot convert hexstring \"" << hexString << "\" to buffer! Invalid length: " << hexString.length() << std::endl;
             exit(BUFFER_ERROR_CODE);
         }
 
@@ -682,7 +682,7 @@ public:
                     byte += hexString[i*2+j] - 'a' + 10;
                 else 
                 {
-                    cerr << "[ ! ] Error: Buffer.h: fromHex(): Cannot convert hexstring \"" << hexString << "\" to buffer! Invalid hex character at position " << i*2+j << ": " << hexString[i*2+j] << endl;
+                    std::cerr << "[ ! ] Error: Buffer.h: fromHex(): Cannot convert hexstring \"" << hexString << "\" to buffer! Invalid hex character at position " << i*2+j << ": " << hexString[i*2+j] << std::endl;
                     exit(BUFFER_ERROR_CODE);
                 }
             }
@@ -788,7 +788,7 @@ Buffer operator+(char chr, Buffer buf)
 Buffer operator* (int noDup, Buffer buf)
 {
     if (noDup < 0) {
-        cerr << "[ ! ] Error: Buffer.h: operator*(): Trying to multiply buffer with negative number!" << endl;
+        std::cerr << "[ ! ] Error: Buffer.h: operator*(): Trying to multiply buffer with negative number!" << std::endl;
         exit(BUFFER_ERROR_CODE);
     }
     if (!noDup || !buf.len())
@@ -923,7 +923,7 @@ bool operator!= (char chr, Buffer buf)
 Buffer operator^ (string const &str, Buffer buf)
 {
     if (buf.len() != str.size()) {
-        cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << endl;
+        std::cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
         exit(BUFFER_ERROR_CODE);
     }
 
@@ -936,7 +936,7 @@ Buffer operator^ (string const &str, Buffer buf)
 Buffer operator^ (char chr, Buffer buf)
 {
     if (buf.len() != 1) {
-        cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << endl;
+        std::cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
         exit(BUFFER_ERROR_CODE);
     }
 

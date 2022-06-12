@@ -12,40 +12,49 @@ protected:
     }
 
 public:
-    void digest()
+    Buffer digest()
     {
-        cerr << "[ ! ] Error! BaseHash.h: digest() is not implemented." << endl;
+        std::cerr << "[ ! ] Error! BaseHash.h: digest() is not implemented." << std::endl;
+        exit(NOT_IMPLEMENTED_ERROR_CODE);
+        return Buffer();
+    }
+
+    inline string hexdigest()
+    {
+        std::cerr << "[ ! ] Error! BaseHash.h: hexdigest() is not implemented." << std::endl;
+        exit(NOT_IMPLEMENTED_ERROR_CODE);
+        return string();
+    }
+
+    inline Int intdigest(bool bigEndian=true)
+    {
+        std::cerr << "[ ! ] Error! BaseHash.h: intdigest() is not implemented." << std::endl;
+        exit(NOT_IMPLEMENTED_ERROR_CODE);
+        return Int();
+    }
+
+
+    inline void update(Buffer input)
+    {
+        std::cerr << "[ ! ] Error! BaseHash.h: update(Buffer input) is not implemented." << std::endl;
         exit(NOT_IMPLEMENTED_ERROR_CODE);
     }
 
-    void hexdigest()
+    inline void update(std::string input)
     {
-        cerr << "[ ! ] Error! BaseHash.h: hexDigest() is not implemented." << endl;
-        exit(NOT_IMPLEMENTED_ERROR_CODE);
-    }
-
-
-    inline void update(Buffer& input)
-    {
-        cerr << "[ ! ] Error! BaseHash.h: update(Buffer& input) is not implemented." << endl;
-        exit(NOT_IMPLEMENTED_ERROR_CODE);
-    }
-
-    inline void update(string& input)
-    {
-        cerr << "[ ! ] Error! BaseHash.h: update(string& input) is not implemented." << endl;
+        std::cerr << "[ ! ] Error! BaseHash.h: update(std::string input) is not implemented." << std::endl;
         exit(NOT_IMPLEMENTED_ERROR_CODE);
     }
 
     inline void update(const char* input, uint size)
     {
-        cerr << "[ ! ] Error! BaseHash.h: update(const char* input, uint size) is not implemented." << endl;
+        std::cerr << "[ ! ] Error! BaseHash.h: update(const char* input, uint size) is not implemented." << std::endl;
         exit(NOT_IMPLEMENTED_ERROR_CODE);
     }
 
     inline void update(char chr)
     {
-        cerr << "[ ! ] Error! BaseHash.h: update(char chr) is not implemented." << endl;
+        std::cerr << "[ ! ] Error! BaseHash.h: update(char chr) is not implemented." << std::endl;
         exit(NOT_IMPLEMENTED_ERROR_CODE);
     }
 };

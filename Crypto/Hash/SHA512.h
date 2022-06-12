@@ -53,13 +53,18 @@ public:
         return this->digest().toHex();
     }
 
+    inline Int intdigest(bool bigEndian=true)
+    {
+        return this->digest().toInt(bigEndian);
+    }
+
 
     inline void update(Buffer input)
     {
         SHA512_Update(&this->context, input.data(), input.len());
     }
 
-    inline void update(string input)
+    inline void update(std::string input)
     {
         SHA512_Update(&this->context, input.c_str(), input.length());
     }
