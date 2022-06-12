@@ -21,11 +21,9 @@ using namespace std;
 int main(int argc, char** argv)
 {
     x3DHClass x3DH;
-    measureTime(
-        for (int i = 0; i < 100; ++i) {
-            x3DH.generateKeyPair();
-        }
-    );
+        Buffer buf(1000);
+        buf.randomAll();
+        buf.__debug__();
 }
 
 // ----------------------------------------------------------------------------------------------------------/-

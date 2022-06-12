@@ -146,6 +146,18 @@ public:
             memset(this->head, 0, this->size);
     }
 
+    void randomAll()
+    {
+        if (this->head && this->size) {
+            FILE* urandomFilePtr = fopen("/dev/urandom", "rb");
+            if (fread(this->head, 1, this->size, urandomFilePtr) < this->size) {
+                std::cerr << "[ ! ] Error! Buffer.h: randomAll(): Generate random buffer with size " << this->size << " failed." << std::endl;
+                exit(BUFFER_ERROR_CODE);
+            }
+            fclose(urandomFilePtr);
+        }
+    }
+
     inline void resize(uint size)
     {
         this->reallocate(size);
