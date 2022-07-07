@@ -1,8 +1,5 @@
 #pragma once
 
-#include <gmpxx.h>
-#include <fstream>
-#include <cstdlib>
 #include "Type.h"
 #include "Buffer.h"
 #include "Calc.h"
@@ -13,8 +10,9 @@ Buffer urandom(uint size)
 
     FILE* urandomFilePtr = fopen("/dev/urandom", "rb");
     if (fread(buffer.data(), 1, size, urandomFilePtr) < size) {
-        std::cerr << "[ ! ] Error! Random.h: urandom(uint size): Generate random buffer with size " << size << " failed." << std::endl;
-        exit(BUFFER_ERROR_CODE);
+        std::stringstream errorStream;
+        errorStream << "[ ! ] Error! Random.h: urandom(uint size): Generate random buffer with size " << size << " failed." << std::endl;
+        throw BufferErrorException(errorStream.str());
     }
     fclose(urandomFilePtr);
 

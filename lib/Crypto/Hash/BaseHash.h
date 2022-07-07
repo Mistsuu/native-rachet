@@ -14,47 +14,54 @@ protected:
 public:
     Buffer digest()
     {
-        std::cerr << "[ ! ] Error! BaseHash.h: digest() is not implemented." << std::endl;
-        exit(NOT_IMPLEMENTED_ERROR_CODE);
+        std::stringstream errorStream;
+        errorStream << "[ ! ] Error! BaseHash.h: digest() is not implemented." << std::endl;
+        throw NotImplementedException(errorStream.str());
         return Buffer();
     }
 
     inline string hexdigest()
     {
-        std::cerr << "[ ! ] Error! BaseHash.h: hexdigest() is not implemented." << std::endl;
-        exit(NOT_IMPLEMENTED_ERROR_CODE);
+        std::stringstream errorStream;
+        errorStream << "[ ! ] Error! BaseHash.h: hexdigest() is not implemented." << std::endl;
+        throw NotImplementedException(errorStream.str());
         return string();
     }
 
     inline Int intdigest(bool bigEndian=true)
     {
-        std::cerr << "[ ! ] Error! BaseHash.h: intdigest() is not implemented." << std::endl;
-        exit(NOT_IMPLEMENTED_ERROR_CODE);
+        std::stringstream errorStream;
+        errorStream << "[ ! ] Error! BaseHash.h: intdigest() is not implemented." << std::endl;
+        throw NotImplementedException(errorStream.str());
         return Int();
     }
 
 
     inline void update(Buffer input)
     {
-        std::cerr << "[ ! ] Error! BaseHash.h: update(Buffer input) is not implemented." << std::endl;
-        exit(NOT_IMPLEMENTED_ERROR_CODE);
+        std::stringstream errorStream;
+        errorStream << "[ ! ] Error! BaseHash.h: update(Buffer input) is not implemented." << std::endl;
+        throw NotImplementedException(errorStream.str());
     }
 
     inline void update(std::string input)
     {
-        std::cerr << "[ ! ] Error! BaseHash.h: update(std::string input) is not implemented." << std::endl;
-        exit(NOT_IMPLEMENTED_ERROR_CODE);
+        std::stringstream errorStream;
+        errorStream << "[ ! ] Error! BaseHash.h: update(std::string input) is not implemented." << std::endl;
+        throw NotImplementedException(errorStream.str());
     }
 
     inline void update(const char* input, uint size)
     {
-        std::cerr << "[ ! ] Error! BaseHash.h: update(const char* input, uint size) is not implemented." << std::endl;
-        exit(NOT_IMPLEMENTED_ERROR_CODE);
+        std::stringstream errorStream;
+        errorStream << "[ ! ] Error! BaseHash.h: update(const char* input, uint size) is not implemented." << std::endl;
+        throw NotImplementedException(errorStream.str());
     }
 
     inline void update(char chr)
     {
-        std::cerr << "[ ! ] Error! BaseHash.h: update(char chr) is not implemented." << std::endl;
-        exit(NOT_IMPLEMENTED_ERROR_CODE);
+        std::stringstream errorStream;
+        errorStream << "[ ! ] Error! BaseHash.h: update(char chr) is not implemented." << std::endl;
+        throw NotImplementedException(errorStream.str());
     }
 };

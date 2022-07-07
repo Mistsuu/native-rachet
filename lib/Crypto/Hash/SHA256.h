@@ -2,7 +2,6 @@
 
 #include "Utils/Utils.h"
 #include "BaseHash.h"
-#include <openssl/sha.h>
 
 class SHA256Hash: public BaseHash
 {

@@ -28,9 +28,10 @@ public:
     PointEdwards mongomeryToEdwards(PointMongomery P)
     {
         if (!onCurve(P)) {
-            std::cerr << "[ ! ] Error: Curve25519.h: mongomeryToEdwards(): PointMongomery is not on curve.\n";
-            std::cerr << "[ ! ]     P: " << P << std::endl;
-            exit(INVALID_POINT_ERROR_CODE);
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Error: Curve25519.h: mongomeryToEdwards(): PointMongomery is not on curve.\n";
+            errorStream << "[ ! ]     P: " << P << std::endl;
+            throw InvalidPointException(errorStream.str());
         }
 
         if (P.z == 0)

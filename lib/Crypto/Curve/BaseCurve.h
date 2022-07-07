@@ -3,8 +3,6 @@
 #include "Utils/Utils.h"
 #include "PointMongomery.h"
 #include "PointEdwards.h"
-#include "KeyPair.h"
-#include <iostream>
 
 class BaseCurve
 {
@@ -161,7 +159,7 @@ public:
         return isQuadraticResidue(y2, this->p);
     }
 
-    bool onCurve(PointEdwards& P)
+    bool onCurve(PointEdwards P)
     {
         if (P.x == EMPTY_X_COORDINATE_EDWARDS) {
             Int x2 = mod(((P.y*P.y - 1) * inverse(this->d*P.y*P.y + 1, this->p)), this->p);
@@ -177,9 +175,10 @@ public:
     PointEdwards edADD(PointEdwards& P, PointEdwards& Q)
     {
         if (!onCurve(P)) {
-            std::cerr << "[ ! ] Error: BaseCurve.h: edADD(): PointEdwards is not on curve.\n";
-            std::cerr << "[ ! ]     P: " << P << std::endl;
-            exit(INVALID_POINT_ERROR_CODE);
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Error: BaseCurve.h: edADD(): PointEdwards is not on curve.\n";
+            errorStream << "[ ! ]     P: " << P << std::endl;
+            throw InvalidPointException(errorStream.str());
         }
         return edADD__unsafe__(P, Q);
     }
@@ -187,9 +186,10 @@ public:
     PointEdwards edMUL(PointEdwards& P, Int n)
     {
         if (!onCurve(P)) {
-            std::cerr << "[ ! ] Error: BaseCurve.h: edMUL(): PointEdwards is not on curve.\n";
-            std::cerr << "[ ! ]     P: " << P << std::endl;
-            exit(INVALID_POINT_ERROR_CODE);
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Error: BaseCurve.h: edMUL(): PointEdwards is not on curve.\n";
+            errorStream << "[ ! ]     P: " << P << std::endl;
+            throw InvalidPointException(errorStream.str());
         }
 
         if (n == 0) 
@@ -224,9 +224,10 @@ public:
     PointMongomery xMUL(PointMongomery P, Int n)
     {
         if (!onCurve(P)) {
-            std::cerr << "[ ! ] Error: BaseCurve.h: xMUL(): PointMongomery is not on curve.\n";
-            std::cerr << "[ ! ]     P: " << P << std::endl;
-            exit(INVALID_POINT_ERROR_CODE);
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Error: BaseCurve.h: xMUL(): PointMongomery is not on curve.\n";
+            errorStream << "[ ! ]     P: " << P << std::endl;
+            throw InvalidPointException(errorStream.str());
         }
 
         if (n == 0) 
@@ -262,9 +263,10 @@ public:
     void normalize(PointMongomery* P) 
     {
         if (!onCurve(*P)) {
-            std::cerr << "[ ! ] Error: BaseCurve.h: normalize(): PointMongomery is not on curve.\n";
-            std::cerr << "[ ! ]     P: " << *P << std::endl;
-            exit(INVALID_POINT_ERROR_CODE);
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Error: BaseCurve.h: normalize(): PointMongomery is not on curve.\n";
+            errorStream << "[ ! ]     P: " << *P << std::endl;
+            throw InvalidPointException(errorStream.str());
         }
 
         if (P->z == 1)
@@ -285,78 +287,10 @@ public:
     // ------------------------------ POINT CONVERTER -------------------------------
     PointEdwards mongomeryToEdwards(PointMongomery P)
     {
-        std::cerr << "[ ! ] Error! BaseCurve.h: mongomeryToEdwards() is not implemented." << std::endl;
-        exit(NOT_IMPLEMENTED_ERROR_CODE);
+        std::stringstream errorStream;
+        errorStream << "[ ! ] Error! BaseCurve.h: mongomeryToEdwards() is not implemented." << std::endl;
+        throw NotImplementedException(errorStream.str());
         return PointEdwards();
-    }
-
-
-    // ------------------------------ POINTS TO BUFFER ------------------------------
-    Buffer serialize(PointMongomery P)
-    {
-        if (!onCurve(P)) {
-            std::cerr << "[ ! ] Error: BaseCurve.h: serialize(): PointMongomery is not on curve.\n";
-            std::cerr << "[ ! ]     P: " << P << std::endl;
-            exit(INVALID_POINT_ERROR_CODE);
-        }
-
-
-        // Create buffer;
-        if (!P.z) {
-            Buffer serializedInfinityPoint(this->pbytes);
-            serializedInfinityPoint.zeroAll();
-            return serializedInfinityPoint;
-        }
-
-
-        // 99.999999...% (1-(1/p)) of the cases:
-        //     P is not infinity
-        // Normalized x and just send its coordinate in bytes form, with \x01 at the beginning.
-        Int    x               = mod(P.x * inverse(P.z, this->p), this->p);
-        Buffer serializedPoint = Buffer::fromInt(x, this->pbytes);
-        serializedPoint[0] ^= 1 << (8 - this->b + this->lp);
-        return serializedPoint;
-
-    }
-
-    PointMongomery deserialize(Buffer serializedPoint)
-    {
-        // Catch invalid length input!
-        if (serializedPoint.len() != this->pbytes) {
-            std::cerr << "[ ! ] Error: BaseCurve.h: deserialize(): Invalid buffer: Length incorrect: " << serializedPoint.len() << " instead of " << this->pbytes + 1 << "\n";
-            std::cerr << "[ ! ]     buffer.hex(): " << serializedPoint.toHex() << std::endl;
-            exit(INVALID_POINT_ERROR_CODE);
-        }
-
-
-        // Infinity, don't give a shit about the rest... (should we...?)
-        if (!(serializedPoint[0] >> (8 - this->b + this->lp)))
-            return PointMongomery(0, 0);
-        
-
-        // Normal point with Z=1
-        if (serializedPoint[0] >> (8 - this->b + this->lp) == 1) {
-
-            // Filter out higher bits of the first byte.
-            serializedPoint[0] &= ((1 << (8 - this->b + this->lp)) - 1);
-            
-            // 
-            PointMongomery P(bytesToInt(serializedPoint.data(), this->pbytes));
-            if (!onCurve(P)) {
-                std::cerr << "[ ! ] Error: BaseCurve.h: deserialize(): Invalid buffer: PointMongomery not on curve.\n";
-                std::cerr << "[ ! ]     buffer.hex(): " << serializedPoint.toHex() << std::endl;
-                std::cerr << "[ ! ]     decoded P:    " << P << std::endl;
-                exit(INVALID_POINT_ERROR_CODE);
-            }
-
-            return P;
-        } 
-
-
-        // Junk buffer detected...?
-        std::cerr << "[ ! ] Error: BaseCurve.h: deserialize(): Invalid format buffer: The first " << (8 - this->b + this->lp) << " bit(s) is/are not 1 or 0.\n";
-        std::cerr << "[ ! ]     buffer.hex(): " << serializedPoint.toHex() << std::endl;
-        exit(INVALID_POINT_ERROR_CODE);
     }
 
 };

@@ -3,9 +3,6 @@
 #include "Type.h"
 #include "Buffer.h"
 #include "Const.h"
-#include <gmp.h>
-#include <iostream>
-#include <vector>
 
 using namespace std;
 
@@ -39,8 +36,9 @@ Int inth_root(Int num, unsigned long int n)
 {
     // Sanity check here.
     if (n <= 0) {
-        std::cerr << "[ ! ] Error in Calc.h: inth_root() Cannot take " << n << "th-root of \"" << num << "\"!" << std::endl;
-        exit(MATH_ERROR_CODE);
+        std::stringstream errorStream;
+        errorStream << "[ ! ] Error in Calc.h: inth_root() Cannot take " << n << "th-root of \"" << num << "\"!" << std::endl;
+        throw MathErrorException(errorStream.str());
     }
     
     Int result;
@@ -56,12 +54,14 @@ Int inth_root(Int num, Int n)
 {
     // Sanity check here.
     if (!n.fits_ulong_p()) {
-        std::cerr << "[ ! ] Error in Calc.h: inth_root(): n=" << n << " is too big to fit in ulong." << std::endl;
-        exit(MATH_ERROR_CODE);
+        std::stringstream errorStream;
+        errorStream << "[ ! ] Error in Calc.h: inth_root(): n=" << n << " is too big to fit in ulong." << std::endl;
+        throw MathErrorException(errorStream.str());
     }
     if (n <= 0) {
-        std::cerr << "[ ! ] Error in Calc.h: inth_root(): Cannot take " << n << "th-root of \"" << num << "\"!" << std::endl;
-        exit(MATH_ERROR_CODE);
+        std::stringstream errorStream;
+        errorStream << "[ ! ] Error in Calc.h: inth_root(): Cannot take " << n << "th-root of \"" << num << "\"!" << std::endl;
+        throw MathErrorException(errorStream.str());
     }
 
     Int   result;
@@ -93,8 +93,9 @@ Int inverse(Int x, Int p)
         x.get_mpz_t(),
         p.get_mpz_t()
     )) {
-        std::cerr << "[ ! ] Error! Calc.h: inverse(): inverse of \"" << x << "\" mod \"" << p << " does not exist." << std::endl;
-        exit(MATH_ERROR_CODE);
+        std::stringstream errorStream;
+        errorStream << "[ ! ] Error! Calc.h: inverse(): inverse of \"" << x << "\" mod \"" << p << " does not exist." << std::endl;
+        throw MathErrorException(errorStream.str());
     }
     return result;
 }
@@ -102,8 +103,9 @@ Int inverse(Int x, Int p)
 Int mod(Int x, Int p)
 {
     if (p == 0) {
-        std::cerr << "[ ! ] Error! Calc.h: mod(): Try to mod 0..." << std::endl;
-        exit(MATH_ERROR_CODE);
+        std::stringstream errorStream;
+        errorStream << "[ ! ] Error! Calc.h: mod(): Try to mod 0..." << std::endl;
+        throw MathErrorException(errorStream.str());
     }
 
     Int result;
@@ -122,10 +124,11 @@ Int mod(Int x, Int p)
 bool isQuadraticResidue(Int x, Int p)
 {
     if (!isPrime(p)) {
-        std::cerr << "[ ! ] Error! Calc.h: legendreSymbol(Int x, Int p): non prime p is not supported yet!" << std::endl;
-        std::cerr << "[ ! ] Debug: x: " << x << std::endl;
-        std::cerr << "[ ! ] Debug: p: " << p << std::endl;
-        exit(NOT_IMPLEMENTED_ERROR_CODE);
+        std::stringstream errorStream;
+        errorStream << "[ ! ] Error! Calc.h: legendreSymbol(Int x, Int p): non prime p is not supported yet!" << std::endl;
+        errorStream << "[ ! ] Debug: x: " << x << std::endl;
+        errorStream << "[ ! ] Debug: p: " << p << std::endl;
+        throw NotImplementedException(errorStream.str());
     }
 
     if (mpz_legendre(x.get_mpz_t(), p.get_mpz_t()) == 1)
@@ -135,10 +138,11 @@ bool isQuadraticResidue(Int x, Int p)
 
 Int sqrt_mod__p_3_mod_4__unsafe__(Int x, Int p)
 {
-    std::cerr << "[ ! ] Error! Calc.h: sqrt_mod__p_3_mod_4__unsafe__(Int x, Int p): Square root mod p where p=3 mod 4 is not support yet!" << std::endl;
-    std::cerr << "[ ! ] Debug: x: " << x << std::endl;
-    std::cerr << "[ ! ] Debug: p: " << p << std::endl;
-    exit(NOT_IMPLEMENTED_ERROR_CODE);
+    std::stringstream errorStream;
+    errorStream << "[ ! ] Error! Calc.h: sqrt_mod__p_3_mod_4__unsafe__(Int x, Int p): Square root mod p where p=3 mod 4 is not support yet!" << std::endl;
+    errorStream << "[ ! ] Debug: x: " << x << std::endl;
+    errorStream << "[ ! ] Debug: p: " << p << std::endl;
+    throw NotImplementedException(errorStream.str());
     return Int();
 }
 
@@ -153,10 +157,11 @@ Int sqrt_mod__p_5_mod_8__unsafe__(Int x, Int p)
     if (pow(result, 2, p) == x)
         return result;
 
-    std::cerr << "[ ! ] Error! Calc.h: sqrt_mod__p_5_mod_8__unsafe__(Int x, Int p): Square root x mod p where p=5 mod 8 does not not exist." << std::endl;
-    std::cerr << "[ ! ] Debug: x: " << x << std::endl;
-    std::cerr << "[ ! ] Debug: p: " << p << std::endl;
-    exit(MATH_ERROR_CODE);
+    std::stringstream errorStream;
+    errorStream << "[ ! ] Error! Calc.h: sqrt_mod__p_5_mod_8__unsafe__(Int x, Int p): Square root x mod p where p=5 mod 8 does not not exist." << std::endl;
+    errorStream << "[ ! ] Debug: x: " << x << std::endl;
+    errorStream << "[ ! ] Debug: p: " << p << std::endl;
+    throw MathErrorException(errorStream.str());
     return Int();
 }
 
@@ -164,18 +169,20 @@ Int sqrtMod(Int x, Int p)
 {
     // Check prime :)
     if (!isPrime(p)) {
-        std::cerr << "[ ! ] Error! Calc.h: sqrt_mod(Int x, Int p): Non-prime p is not supported yet!" << std::endl;
-        std::cerr << "[ ! ] Debug: x: " << x << std::endl;
-        std::cerr << "[ ! ] Debug: p: " << p << std::endl;
-        exit(NOT_IMPLEMENTED_ERROR_CODE);
+        std::stringstream errorStream;
+        errorStream << "[ ! ] Error! Calc.h: sqrt_mod(Int x, Int p): Non-prime p is not supported yet!" << std::endl;
+        errorStream << "[ ! ] Debug: x: " << x << std::endl;
+        errorStream << "[ ! ] Debug: p: " << p << std::endl;
+        throw NotImplementedException(errorStream.str());
     }
 
     // Check if x is a quadratic residue.
     if (!isQuadraticResidue(x, p)) {
-        std::cerr << "[ ! ] Error! Calc.h: sqrt_mod(Int x, Int p): Cannot find sqrt(x) mod p!" << std::endl;
-        std::cerr << "[ ! ] Debug: x: " << x << std::endl;
-        std::cerr << "[ ! ] Debug: p: " << p << std::endl;
-        exit(MATH_ERROR_CODE);
+        std::stringstream errorStream;
+        errorStream << "[ ! ] Error! Calc.h: sqrt_mod(Int x, Int p): Cannot find sqrt(x) mod p!" << std::endl;
+        errorStream << "[ ! ] Debug: x: " << x << std::endl;
+        errorStream << "[ ! ] Debug: p: " << p << std::endl;
+        throw MathErrorException(errorStream.str());
     }
 
     // Handle current cases
@@ -185,10 +192,11 @@ Int sqrtMod(Int x, Int p)
         return sqrt_mod__p_5_mod_8__unsafe__(mod(x, p), p);
 
     // Well.. not yet prepared
-    std::cerr << "[ ! ] Error! Calc.h: sqrt_mod(Int x, Int p): Not implemented for this kind of p." << std::endl;
-    std::cerr << "[ ! ] Debug: x: " << x << std::endl;
-    std::cerr << "[ ! ] Debug: p: " << p << std::endl;
-    exit(NOT_IMPLEMENTED_ERROR_CODE);
+    std::stringstream errorStream;
+    errorStream << "[ ! ] Error! Calc.h: sqrt_mod(Int x, Int p): Not implemented for this kind of p." << std::endl;
+    errorStream << "[ ! ] Debug: x: " << x << std::endl;
+    errorStream << "[ ! ] Debug: p: " << p << std::endl;
+    throw NotImplementedException(errorStream.str());
 }
 
 

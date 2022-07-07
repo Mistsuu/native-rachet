@@ -53,9 +53,38 @@ public:
 
 
     // -------------------- Serialize data ----------------------
+    inline Buffer serialize(PointEdwards P)
+    {
+        // Check if valid
+        if (!curve.onCurve(P)) {
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Error! x3DH.h: serialize(): Serializing PointEdwards P not on curve!" << std::endl;
+            errorStream << "[ ! ]     P: " << P << std::endl;
+            throw InvalidPointException(errorStream.str());
+        }
+
+        Buffer serializedPoint = Buffer::fromInt(P.y, curve.curveSizeBytes());
+        serializedPoint[0] ^= P.s << 7;
+        return serializedPoint;
+    }
+
     inline Buffer serialize(PointMongomery P)
     {
-        return curve.serialize(P); // output.len() == curve.curveSizeBytes()
+        // Check if valid
+        if (!curve.onCurve(P)) {
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Error! x3DH.h: serialize(): Serializing PointMongomery P not on curve!" << std::endl;
+            errorStream << "[ ! ]     P: " << P << std::endl;
+            throw InvalidPointException(errorStream.str());
+        }
+
+        // Normalize point
+        curve.normalize(&P);
+
+        // ... and now serialize :)
+        Buffer serializedPoint = Buffer::fromInt(P.x, curve.curveSizeBytes());
+        serializedPoint[0] ^= (P.z == 1 ? 1 : 0) << 7;
+        return serializedPoint;
     }
 
     inline Buffer serialize(Int num)
@@ -63,9 +92,60 @@ public:
         return Buffer::fromInt(num, curve.curveSizeBytes());
     }
 
-    inline PointMongomery deserializePoint(Buffer pointBuffer)
+    inline PointEdwards deserializeEdwardPoint(Buffer edwardPointBuffer)
     {
-        return curve.deserialize(pointBuffer);
+        if (edwardPointBuffer.len() != curve.curveSizeBytes()) {
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Error! x3DH.h: deserializeEdwardPoint(): Cannot deserialize the buffer! Wrong length! Got " << edwardPointBuffer.len() << " instead of " << curve.curveSizeBytes() << "!" << std::endl;
+            errorStream << "[ ! ]     Buffer (in hex): " << edwardPointBuffer.toHex() << std::endl;
+            throw DeserializeErrorException(errorStream.str());
+        }
+
+        // Parse point
+        PointEdwards parsedEdwardPoint;
+        parsedEdwardPoint.s   = edwardPointBuffer[0] >> 7;
+        edwardPointBuffer[0] &= 0x7f;
+        parsedEdwardPoint.y   = edwardPointBuffer.toInt();
+
+        // Check if valid
+        if (!curve.onCurve(parsedEdwardPoint)) {
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Error! x3DH.h: deserializeEdwardPoint(): Deserialize buffer leads to point not on curve!" << std::endl;
+            errorStream << "[ ! ]     Buffer (in hex): " << edwardPointBuffer.toHex() << std::endl;
+            errorStream << "[ ! ]     Parsed point: "    << parsedEdwardPoint         << std::endl;
+            throw InvalidPointException(errorStream.str());
+        }
+
+        // ... then return!!
+        return parsedEdwardPoint;
+    }
+
+    inline PointMongomery deserializeMongomeryPoint(Buffer mongomeryPointBuffer)
+    {
+        if (mongomeryPointBuffer.len() != curve.curveSizeBytes()) {
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Error! x3DH.h: deserializeMongomeryPoint(): Cannot deserialize the buffer! Wrong length! Got " << mongomeryPointBuffer.len() << " instead of " << curve.curveSizeBytes() << "!" << std::endl;
+            errorStream << "[ ! ]     Buffer (in hex): " << mongomeryPointBuffer.toHex() << std::endl;
+            throw DeserializeErrorException(errorStream.str());
+        }
+
+        // Parse point
+        PointMongomery parsedMongomeryPoint;
+        parsedMongomeryPoint.z   = mongomeryPointBuffer[0] >> 7;
+        mongomeryPointBuffer[0] &= 0x7f;
+        parsedMongomeryPoint.x   = mongomeryPointBuffer.toInt();
+
+        // Check if valid
+        if (!curve.onCurve(parsedMongomeryPoint)) {
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Error! x3DH.h: deserializeMongomeryPoint(): Deserialize buffer leads to point not on curve!" << std::endl;
+            errorStream << "[ ! ]     Buffer (in hex): " << mongomeryPointBuffer.toHex() << std::endl;
+            errorStream << "[ ! ]     Parsed point: "    << parsedMongomeryPoint         << std::endl;
+            throw InvalidPointException(errorStream.str());
+        }
+
+        // ... then return!!
+        return parsedMongomeryPoint;
     }
 
     inline Int deserializeInt(Buffer intBuffer)
@@ -88,35 +168,59 @@ public:
 
 
     // -------------------- Signing functions --------------------
-    PointEdwards calculateKeyPair(Int privateKey)
+    PointEdwards calculateKeyPair(Int& privateKey)
     {
-        PointEdwards E = curve.edMUL(curve.generatorPointEdwards(), privateKey);
+        PointEdwards edwardPublicFull  = curve.edMUL(curve.generatorPointEdwards(), privateKey);
+        PointEdwards edwardPublicTrunc = PointEdwards(edwardPublicFull.y, 0);
+
+        if (edwardPublicFull.s == 1)
+            privateKey = (-privateKey, curve.modulus());
+        else
+            privateKey = ( privateKey, curve.modulus());
+        
+        return edwardPublicTrunc;
     }
 
-    Buffer XEdDSA_sign(KeyPair signKey, Buffer message)
+    Buffer XEdDSA_sign(Int mongomeryPrivateKey, Buffer message)
     {
         // Generate random buffer...
         Buffer randomData = urandom(64);
         
-        // Serialize some data
-        Buffer serializedPubKey = this->serialize(signKey.publicKey);
-        Buffer serializedPrvKey = this->serialize(signKey.privateKey);
-        
-        // Multiply points
-        Int    r = this->hash_i(1, serializedPrvKey + message + randomData) % curve.generatorOrder();
-        Buffer R = this->serialize(curve.xMUL(curve.generatorPointMongomery(), r));
-        Int    h = this->hash(R + serializedPubKey + message);
-        Int    s = (r + h*signKey.privateKey) % curve.generatorOrder();
+        // Do signing...
+        PointEdwards edwardPublic = this->calculateKeyPair(mongomeryPrivateKey);        
+        Int r = mod(
+            this->hash_i(1, 
+                this->serialize(edwardPublic) + message + randomData
+            ), curve.generatorOrder()
+        );
+        PointEdwards R = curve.edMUL(curve.generatorPointEdwards(), r);
+        Int h = mod(
+            this->hash(
+                this->serialize(R) + this->serialize(edwardPublic) + message
+            ), curve.generatorOrder()
+        );
+        Int s = mod((r + h*mongomeryPrivateKey), curve.generatorOrder());
 
-        return R + this->serialize(s);
+        // Return serialized buffer...
+        return this->serialize(R) + this->serialize(s);
+    }
+
+    bool XEdDSA_verify(Buffer serializePublicKey, Buffer message, Buffer signature)
+    {
+        PointMongomery mongomeryPublicKey = this->deserializeMongomeryPoint(serializePublicKey);
+        PointEdwards   edwardSignPoint    = this->deserializeEdwardPoint(signature[{(int)curve.curveSizeBytes()}]);
+        Int            s                  = this->deserializeInt(signature[{-(int)curve.curveSizeBytes()}]);
+
+        return 1;
     }
 
 
     PointMongomery calculateDHSharedSecret(Int ourPrivateKey, PointMongomery& theirPublicKey)
     {
         if (ourPrivateKey == PRIVATE_KEY_NULL) {
-            std::cerr << "[ ! ] Error! x3DH.h: calculateDHSharedSecret(): Private key is empty!" << std::endl;
-            exit(EMPTY_KEY_ERROR_CODE);
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Error! x3DH.h: calculateDHSharedSecret(): Private key is empty!" << std::endl;
+            throw KeyErrorException(errorStream.str());
         }
         return curve.xMUL(theirPublicKey, ourPrivateKey);
     }

@@ -5,3 +5,4 @@
 #include "Const.h"
 #include "Random.h"
 #include "Type.h"
+#include "Error.h"

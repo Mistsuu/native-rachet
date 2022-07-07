@@ -1,11 +1,8 @@
 #pragma once
 
-#include <iostream>
-#include <cstdlib>
-#include <cstring>
-#include <iomanip>
 #include "Const.h"
 #include "Type.h"
+#include "Error.h"
 
 using namespace std;
 
@@ -37,8 +34,9 @@ private:
 
         // If after this, head still returns NULL, exit the program immediately!
         if (!this->head) {
-            std::cerr << "[ ! ] Critical Error: Buffer.h: reallocate(): Allocation failed." << std::endl;
-            exit(BUFFER_ERROR_CODE);
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Critical Error: Buffer.h: reallocate(): Allocation failed." << std::endl;
+            throw BufferErrorException(errorStream.str());
         }
     }
 
@@ -151,8 +149,9 @@ public:
         if (this->head && this->size) {
             FILE* urandomFilePtr = fopen("/dev/urandom", "rb");
             if (fread(this->head, 1, this->size, urandomFilePtr) < this->size) {
-                std::cerr << "[ ! ] Error! Buffer.h: randomAll(): Generate random buffer with size " << this->size << " failed." << std::endl;
-                exit(BUFFER_ERROR_CODE);
+                std::stringstream errorStream;
+                errorStream << "[ ! ] Error! Buffer.h: randomAll(): Generate random buffer with size " << this->size << " failed." << std::endl;
+                throw BufferErrorException(errorStream.str());
             }
             fclose(urandomFilePtr);
         }
@@ -451,8 +450,9 @@ public:
     Buffer operator* (int noDup)
     {
         if (noDup < 0) {
-            std::cerr << "[ ! ] Error: Buffer.h: operator*(): Trying to multiply buffer with negative number!" << std::endl;
-            exit(BUFFER_ERROR_CODE);
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Error: Buffer.h: operator*(): Trying to multiply buffer with negative number!" << std::endl;
+            throw BufferErrorException(errorStream.str());
         }
         if (!noDup || !this->size)
             return Buffer();
@@ -469,8 +469,9 @@ public:
     void operator*= (int noDup)
     {
         if (noDup < 0) {
-            std::cerr << "[ ! ] Error: Buffer.h: operator*=(): Trying to multiply buffer with negative number!" << std::endl;
-            exit(BUFFER_ERROR_CODE);
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Error: Buffer.h: operator*=(): Trying to multiply buffer with negative number!" << std::endl;
+            throw BufferErrorException(errorStream.str());
         }
 
         if (!this->size || noDup == 1)
@@ -491,8 +492,9 @@ public:
     Buffer operator^ (Buffer const &buf)
     {
         if (this->size != buf.size) {
-            std::cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
-            exit(BUFFER_ERROR_CODE);
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
+            throw BufferErrorException(errorStream.str());
         }
 
         Buffer newBuffer(this->size);
@@ -504,8 +506,9 @@ public:
     Buffer operator^ (string const &str)
     {
         if (this->size != str.size()) {
-            std::cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
-            exit(BUFFER_ERROR_CODE);
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
+            throw BufferErrorException(errorStream.str());
         }
 
         Buffer newBuffer(this->size);
@@ -517,8 +520,9 @@ public:
     Buffer operator^ (char chr)
     {
         if (this->size != 1) {
-            std::cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
-            exit(BUFFER_ERROR_CODE);
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
+            throw BufferErrorException(errorStream.str());
         }
 
         return Buffer(this->head[0] ^ chr);
@@ -528,8 +532,9 @@ public:
     void operator^= (Buffer const &buf)
     {
         if (this->size != buf.size) {
-            std::cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
-            exit(BUFFER_ERROR_CODE);
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
+            throw BufferErrorException(errorStream.str());
         }
 
         for (int i = 0; i < this->size; ++i)
@@ -539,8 +544,9 @@ public:
     void operator^= (string const &str)
     {
         if (this->size != str.size()) {
-            std::cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
-            exit(BUFFER_ERROR_CODE);
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
+            throw BufferErrorException(errorStream.str());
         }
 
         for (int i = 0; i < this->size; ++i)
@@ -550,8 +556,9 @@ public:
     void operator^= (char chr)
     {
         if (this->size != 1) {
-            std::cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
-            exit(BUFFER_ERROR_CODE);
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
+            throw BufferErrorException(errorStream.str());
         }
 
         this->head[0] ^= chr;
@@ -562,8 +569,9 @@ public:
     inline int filterAndConvertIndex(int index)
     {
         if (index >= (int)this->size || index < -((int)(this->size))) {
-            std::cerr << "[ ! ] Error: Buffer.h: operator[]: Accessing index " << index << " is not allowed, since size = " << this->size << "." << std::endl;
-            exit(BUFFER_ERROR_CODE);
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Error: Buffer.h: operator[]: Accessing index " << index << " is not allowed, since size = " << this->size << "." << std::endl;
+            throw BufferErrorException(errorStream.str());
         }
 
         // If index is negative, convert it to its non-negative counterpart.
@@ -593,18 +601,29 @@ public:
 
         if (range.size() == 1) {
             rIndex = *(pRange++);
-            if (!rIndex)
-                return Buffer();
-            rIndex = filterAndConvertIndex(rIndex-1)+1;
-            return Buffer((char*)this->head, rIndex);
+
+            if (rIndex < 0) {
+                rIndex = filterAndConvertIndex(rIndex-1)+1;
+                return Buffer((char*)&this->head[rIndex], this->size - rIndex);
+            }
+            
+            if (rIndex > 0) {
+                rIndex = filterAndConvertIndex(rIndex-1)+1;
+                return Buffer((char*)this->head, rIndex);
+            }
+
+            return Buffer();
 
         } else if (range.size() == 2) {
             lIndex = *(pRange++);
             rIndex = *(pRange++);
 
             lIndex = filterAndConvertIndex(lIndex);
-            if (rIndex)
+            if (rIndex) 
                 rIndex = filterAndConvertIndex(rIndex-1)+1;
+            else        
+                rIndex = this->size;
+            
             if (lIndex < rIndex)
                 return Buffer((char*)&this->head[lIndex], rIndex-lIndex);
             return Buffer();
@@ -618,6 +637,8 @@ public:
             lIndex = filterAndConvertIndex(lIndex);
             if (rIndex)
                 rIndex = filterAndConvertIndex(rIndex-1)+1;
+            else        
+                rIndex = this->size;
 
             // Return empty buffer if lIndex >= rIndex
             if (lIndex >= rIndex) 
@@ -625,8 +646,9 @@ public:
 
             // Check if valid step
             if (step <= 0) {
-                std::cerr << "[ ! ] Error: Buffer.h: operator[]: step should be a positive number." << std::endl;
-                exit(BUFFER_ERROR_CODE);
+                std::stringstream errorStream;
+                errorStream << "[ ! ] Error: Buffer.h: operator[]: step should be a positive number." << std::endl;
+                throw BufferErrorException(errorStream.str());
             }
 
             // Do some memory copying without not sure if this is
@@ -637,8 +659,9 @@ public:
             return newBuffer;
         }
 
-        std::cerr << "[ ! ] Error: Buffer.h: operator[]: NotImplementedError" << std::endl;
-        exit(NOT_IMPLEMENTED_ERROR_CODE);
+        std::stringstream errorStream;
+        errorStream << "[ ! ] Error: Buffer.h: operator[]: NotImplementedError" << std::endl;
+        throw NotImplementedException(errorStream.str());
     }
     
     u_char* data()
@@ -669,8 +692,9 @@ public:
     {
         // Sanity check...
         if (hexString.length() % 2 != 0) {
-            std::cerr << "[ ! ] Error: Buffer.h: fromHex(): Cannot convert hexstring \"" << hexString << "\" to buffer! Invalid length: " << hexString.length() << std::endl;
-            exit(BUFFER_ERROR_CODE);
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Error: Buffer.h: fromHex(): Cannot convert hexstring \"" << hexString << "\" to buffer! Invalid length: " << hexString.length() << std::endl;
+            throw BufferErrorException(errorStream.str());
         }
 
         // Set size.
@@ -694,8 +718,9 @@ public:
                     byte += hexString[i*2+j] - 'a' + 10;
                 else 
                 {
-                    std::cerr << "[ ! ] Error: Buffer.h: fromHex(): Cannot convert hexstring \"" << hexString << "\" to buffer! Invalid hex character at position " << i*2+j << ": " << hexString[i*2+j] << std::endl;
-                    exit(BUFFER_ERROR_CODE);
+                    std::stringstream errorStream;
+                    errorStream << "[ ! ] Error: Buffer.h: fromHex(): Cannot convert hexstring \"" << hexString << "\" to buffer! Invalid hex character at position " << i*2+j << ": " << hexString[i*2+j] << std::endl;
+                    throw BufferErrorException(errorStream.str());
                 }
             }
 
@@ -800,8 +825,9 @@ Buffer operator+(char chr, Buffer buf)
 Buffer operator* (int noDup, Buffer buf)
 {
     if (noDup < 0) {
-        std::cerr << "[ ! ] Error: Buffer.h: operator*(): Trying to multiply buffer with negative number!" << std::endl;
-        exit(BUFFER_ERROR_CODE);
+        std::stringstream errorStream;
+        errorStream << "[ ! ] Error: Buffer.h: operator*(): Trying to multiply buffer with negative number!" << std::endl;
+        throw BufferErrorException(errorStream.str());
     }
     if (!noDup || !buf.len())
         return Buffer();
@@ -935,8 +961,9 @@ bool operator!= (char chr, Buffer buf)
 Buffer operator^ (string const &str, Buffer buf)
 {
     if (buf.len() != str.size()) {
-        std::cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
-        exit(BUFFER_ERROR_CODE);
+        std::stringstream errorStream;
+        errorStream << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
+        throw BufferErrorException(errorStream.str());
     }
 
     Buffer newBuffer;
@@ -948,8 +975,9 @@ Buffer operator^ (string const &str, Buffer buf)
 Buffer operator^ (char chr, Buffer buf)
 {
     if (buf.len() != 1) {
-        std::cerr << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
-        exit(BUFFER_ERROR_CODE);
+        std::stringstream errorStream;
+        errorStream << "[ ! ] Critical Error: Buffer.h: operator^(): The item should be in equal lengths." << std::endl;
+        throw BufferErrorException(errorStream.str());
     }
 
     return Buffer(buf[0] ^ chr);

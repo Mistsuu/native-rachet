@@ -19,8 +19,16 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-    ProtocolCurve curve;
-    cout << curve.edMUL(curve.generatorPointEdwards(), 10) << endl;
+    try {
+        Buffer buffer("1234567890123456789012345678901234567890123456789012345678901234567890123456789012345helloimmmistsu");
+        buffer[{84353908}].__debug__();
+    } catch (std::exception& ex) {
+        cout << ex.what() << endl;
+        cout << ex.what() << endl;
+        cout << ex.what() << endl;
+        cout << ex.what() << endl;
+        cout << ex.what() << endl;
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------/-
