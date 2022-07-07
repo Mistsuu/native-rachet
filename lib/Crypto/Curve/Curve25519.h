@@ -23,4 +23,24 @@ public:
         this->b       = this->pbytes << 3;
         this->d       = mod((this->p - 121665) * inverse(121666, this->p), this->p);
     }
+
+    // ------------------------------ POINT CONVERTER -------------------------------
+    PointEdwards mongomeryToEdwards(PointMongomery P)
+    {
+        if (!onCurve(P)) {
+            std::cerr << "[ ! ] Error: Curve25519.h: mongomeryToEdwards(): PointMongomery is not on curve.\n";
+            std::cerr << "[ ! ]     P: " << P << std::endl;
+            exit(INVALID_POINT_ERROR_CODE);
+        }
+
+        if (P.z == 0)
+            return PointEdwards(0, 1, 0);
+        
+        Int X = (P.x * inverse(P.z, this->p)) % this->p;
+        return PointEdwards(
+            ((X-1) * inverse(X+1, this->p)) % this->p,
+            0
+        );
+    }
+
 };

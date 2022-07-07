@@ -88,7 +88,12 @@ public:
 
 
     // -------------------- Signing functions --------------------
-    Buffer XMoDSA_sign(KeyPair signKey, Buffer message)
+    PointEdwards calculateKeyPair(Int privateKey)
+    {
+        PointEdwards E = curve.edMUL(curve.generatorPointEdwards(), privateKey);
+    }
+
+    Buffer XEdDSA_sign(KeyPair signKey, Buffer message)
     {
         // Generate random buffer...
         Buffer randomData = urandom(64);
@@ -105,20 +110,6 @@ public:
 
         return R + this->serialize(s);
     }
-
-    // Buffer XMoDSA_verify(Buffer serializedPubKey, Buffer message, Buffer signature)
-    // {
-    //     if (signature.len() != curve.curveSizeBytes() * 2) {
-    //         std::cerr << "[ ! ] Error: x3DH.h: XMoDSA_verify(Buffer serializedPubKey, Buffer message, Buffer signature): Invalid signature length: needs " << curve.curveSizeBytes() << ", got: " << signature.len() << std::endl;
-    //         exit(VERIFY_SIGNATURE_ERROR_CODE);
-    //     }
-
-    //     PointMongomery  publicKey = curve.deserialize(serializedPubKey);
-    //     Buffer R         =                      signature[{                          0, (int)curve.curveSizeBytes()}];
-    //     Int    s         = this->deserializeInt(signature[{(int)curve.curveSizeBytes(), (int)signature.len()       }]);
-    //     Int    h         = this->hash(R + serializedPubKey + message) % curve.generatorOrder();
-    //     Buffer Rcheck    = this->serialize(curve.xMUL())
-    // }
 
 
     PointMongomery calculateDHSharedSecret(Int ourPrivateKey, PointMongomery& theirPublicKey)

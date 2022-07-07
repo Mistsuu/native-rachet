@@ -20,11 +20,7 @@ using namespace std;
 int main(int argc, char** argv)
 {
     ProtocolCurve curve;
-    cout << curve.onCurve(PointMongomery(9)) << endl;
-    cout << curve.onCurve(PointMongomery(123)) << endl;
-    cout << curve.onCurve(PointMongomery(1234)) << endl;
-    cout << curve.onCurve(PointMongomery(12345)) << endl;
-    cout << curve.onCurve(PointMongomery(123456789)) << endl;
+    cout << curve.edMUL(curve.generatorPointEdwards(), 10) << endl;
 }
 
 // ----------------------------------------------------------------------------------------------------------/-

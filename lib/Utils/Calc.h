@@ -135,17 +135,28 @@ bool isQuadraticResidue(Int x, Int p)
 
 Int sqrt_mod__p_3_mod_4__unsafe__(Int x, Int p)
 {
-    std::cerr << "[ ! ] Error! Calc.h: sqrt_mod__p_3_mod_4__unsafe__(Int x, Int p): square root mod p where p=3 mod 4 is not support yet!" << std::endl;
+    std::cerr << "[ ! ] Error! Calc.h: sqrt_mod__p_3_mod_4__unsafe__(Int x, Int p): Square root mod p where p=3 mod 4 is not support yet!" << std::endl;
     std::cerr << "[ ! ] Debug: x: " << x << std::endl;
     std::cerr << "[ ! ] Debug: p: " << p << std::endl;
+    exit(NOT_IMPLEMENTED_ERROR_CODE);
     return Int();
 }
 
 Int sqrt_mod__p_5_mod_8__unsafe__(Int x, Int p)
 {
-    std::cerr << "[ ! ] Error! Calc.h: sqrt_mod__p_5_mod_8__unsafe__(Int x, Int p): square root mod p where p=5 mod 8 is not support yet!" << std::endl;
+    Int result = pow(x, (p+3)/8, p);
+    if (pow(result, 2, p) == x) 
+        return result;
+
+    result *= pow(2, (p-1)/4, p);
+    result  = mod(result, p);
+    if (pow(result, 2, p) == x)
+        return result;
+
+    std::cerr << "[ ! ] Error! Calc.h: sqrt_mod__p_5_mod_8__unsafe__(Int x, Int p): Square root x mod p where p=5 mod 8 does not not exist." << std::endl;
     std::cerr << "[ ! ] Debug: x: " << x << std::endl;
     std::cerr << "[ ! ] Debug: p: " << p << std::endl;
+    exit(MATH_ERROR_CODE);
     return Int();
 }
 
@@ -153,7 +164,7 @@ Int sqrtMod(Int x, Int p)
 {
     // Check prime :)
     if (!isPrime(p)) {
-        std::cerr << "[ ! ] Error! Calc.h: sqrt_mod(Int x, Int p): non prime p is not supported yet!" << std::endl;
+        std::cerr << "[ ! ] Error! Calc.h: sqrt_mod(Int x, Int p): Non-prime p is not supported yet!" << std::endl;
         std::cerr << "[ ! ] Debug: x: " << x << std::endl;
         std::cerr << "[ ! ] Debug: p: " << p << std::endl;
         exit(NOT_IMPLEMENTED_ERROR_CODE);
@@ -169,9 +180,9 @@ Int sqrtMod(Int x, Int p)
 
     // Handle current cases
     if (p % 4 == 3)
-        return sqrt_mod__p_3_mod_4__unsafe__(x, p);
+        return sqrt_mod__p_3_mod_4__unsafe__(mod(x, p), p);
     else if (p % 8 == 5)
-        return sqrt_mod__p_5_mod_8__unsafe__(x, p);
+        return sqrt_mod__p_5_mod_8__unsafe__(mod(x, p), p);
 
     // Well.. not yet prepared
     std::cerr << "[ ! ] Error! Calc.h: sqrt_mod(Int x, Int p): Not implemented for this kind of p." << std::endl;

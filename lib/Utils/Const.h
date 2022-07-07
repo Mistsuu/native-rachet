@@ -13,5 +13,8 @@
 // --- KEY RELATED ---
 #define PRIVATE_KEY_NULL              -1
 
+// --- POINT RELATED ---
+#define EMPTY_X_COORDINATE_EDWARDS    -1
+
 // --- FOR PRIME CHECKING ---
 #define _PRIME_CHECK_THRESHOLD        40

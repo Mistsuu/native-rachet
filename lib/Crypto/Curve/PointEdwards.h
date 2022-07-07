@@ -12,33 +12,50 @@
 class PointEdwards
 {
 public:
+    Int x;
     Int y;
     int s;
     PointEdwards(Int y)
     {
+        this->x = EMPTY_X_COORDINATE_EDWARDS;
         this->y = y;
         this->s = 1;
     }
 
     PointEdwards(Int y, int s)
     {
+        this->x = EMPTY_X_COORDINATE_EDWARDS;
+        this->y = y;
+        this->s = s;
+    }
+
+    PointEdwards(Int x, Int y, int s)
+    {
+        this->x = x;
         this->y = y;
         this->s = s;
     }
 
     PointEdwards()
     {
+        this->x = EMPTY_X_COORDINATE_EDWARDS;
         this->y = 0;
         this->s = 0;
     }
 
     void __debug__()
     {
-        std::cout << "(" << this->y << ":" << this->s << ")" << std::endl;
+        if (this->x == EMPTY_X_COORDINATE_EDWARDS)
+            std::cout << "(X:" << this->y << ")" << std::endl;
+        else
+            std::cout << "(" << this->x << ":" << this->y << ")" << std::endl;
     }
 };
 
 std::ostream& operator<<(std::ostream &os, PointEdwards const &P)
 {
-    return os << "(" << P.y << ":" << P.s << ")";
+    if (P.x == EMPTY_X_COORDINATE_EDWARDS)
+        return os << "(X:" << P.y << ")";
+    else 
+        return os << "(" << P.x << ":" << P.y << ")";
 }

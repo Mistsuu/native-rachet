@@ -9,16 +9,16 @@
 class BaseCurve
 {
 protected:
-    Int   a;               // Params in y^2 = x^3 + ax^2 + x 
-    Int   p;               //           mod p
-    PointMongomery Gmo;    // Generator point on Mongomery Curve.
-    PointEdwards   Ged;    // Generator point on Edwards Curve.
-    Int   q;               // Order of generator point.
-    uint  lp;              // Bit length of p (|p|)
-    uint  lq;              // Bit length of q (|q|)
-    uint  pbytes;          // defined as ceil((|p| + 1)/8)
-    uint  b;               // defined as 8 * ( ceil((|p| + 1)/8) )
-    Int   d;               // d in equivalent Edward form: dx^2y^2 + 1 = -x^2 + y^2
+    Int            a;               // Params in y^2 = x^3 + ax^2 + x 
+    Int            p;               //           mod p
+    PointMongomery Gmo;             // Generator point on Mongomery Curve.
+    PointEdwards   Ged;             // Generator point on Edwards Curve.
+    Int            q;               // Order of generator point.
+    uint           lp;              // Bit length of p (|p|)
+    uint           lq;              // Bit length of q (|q|)
+    uint           pbytes;          // defined as ceil((|p| + 1)/8)
+    uint           b;               // defined as 8 * ( ceil((|p| + 1)/8) )
+    Int            d;               // d in equivalent Edward form: dx^2y^2 + 1 = -x^2 + y^2
 
     BaseCurve()
     {
@@ -62,6 +62,37 @@ protected:
         return PointMongomery(xR, zR);
     }
 
+    PointEdwards edDBL__unsafe__(PointEdwards& P)
+    {
+        this->recoverXEdwards(&P);
+
+        Int Px_2 = P.x*P.x;
+        Int Py_2 = P.y*P.y;
+
+        Int Rx = mod(((2*P.x*P.y) * inverse(  Py_2-Px_2, this->p)), this->p);
+        Int Ry = mod(((Py_2+Px_2) * inverse(2-Py_2+Px_2, this->p)), this->p);
+        return PointEdwards(
+            Rx,
+            Ry,
+            (Rx % 2 == 0) ? 1 : 0
+        );
+    }
+
+    PointEdwards edADD__unsafe__(PointEdwards& P, PointEdwards& Q)
+    {
+        this->recoverXEdwards(&P);
+        this->recoverXEdwards(&Q);
+
+        Int dPxPyQxQy = mod(this->d * P.x*Q.x*P.y*Q.y, this->p);
+        Int Rx = mod(((P.x*Q.y + Q.x*P.y) * inverse(1 + dPxPyQxQy, this->p)), this->p);
+        Int Ry = mod(((P.y*Q.y + P.x*Q.x) * inverse(1 - dPxPyQxQy, this->p)), this->p);
+        return PointEdwards(
+            Rx,
+            Ry,
+            (Rx % 2 == 0) ? 1 : 0
+        );
+    }
+
 public:
 
     // ------------------------------ DATA ABOUT CURVE ------------------------------
@@ -75,7 +106,7 @@ public:
         return this->Gmo;
     }
 
-    PointEdwards generatorPointEdwards()
+    PointEdwards& generatorPointEdwards()
     {
         return this->Ged;
     }
@@ -123,11 +154,71 @@ public:
             return true;
 
         // Eval x^3 + ax^2 + x ==> y^2
-        Int x  = (P.x * inverse(P.z, this->p)) % this->p;
+        Int x  = mod((P.x * inverse(P.z, this->p)), this->p);
         Int y2 = ((x + a) * x + 1) * x;
 
         // Check if y^2 is quadratic residue.
         return isQuadraticResidue(y2, this->p);
+    }
+
+    bool onCurve(PointEdwards& P)
+    {
+        if (P.x == EMPTY_X_COORDINATE_EDWARDS) {
+            Int x2 = mod(((P.y*P.y - 1) * inverse(this->d*P.y*P.y + 1, this->p)), this->p);
+            return isQuadraticResidue(x2, this->p);
+        } else {
+            return (
+                   mod((-P.x*P.x + P.y*P.y),            this->p) 
+                == mod((1 + this->d * P.x*P.x*P.y*P.y), this->p)
+            );
+        }
+    }
+
+    PointEdwards edADD(PointEdwards& P, PointEdwards& Q)
+    {
+        if (!onCurve(P)) {
+            std::cerr << "[ ! ] Error: BaseCurve.h: edADD(): PointEdwards is not on curve.\n";
+            std::cerr << "[ ! ]     P: " << P << std::endl;
+            exit(INVALID_POINT_ERROR_CODE);
+        }
+        return edADD__unsafe__(P, Q);
+    }
+
+    PointEdwards edMUL(PointEdwards& P, Int n)
+    {
+        if (!onCurve(P)) {
+            std::cerr << "[ ! ] Error: BaseCurve.h: edMUL(): PointEdwards is not on curve.\n";
+            std::cerr << "[ ! ]     P: " << P << std::endl;
+            exit(INVALID_POINT_ERROR_CODE);
+        }
+
+        if (n == 0) 
+            return PointEdwards(0, 1, 0);
+        
+        if (n < 0)
+            n = -n;
+
+        vector<Int> nBin;
+        nBin = getBits(n);
+
+        PointEdwards R0,R1, _R0,_R1;
+        R0 = P;
+        R1 = edDBL__unsafe__(P);
+
+        for (int i = nBin.size() - 2; i >= 0; --i) {
+            if (nBin[i] == 0) {
+                _R0 = edDBL__unsafe__(R0);
+                _R1 = edADD__unsafe__(R0, R1);
+            } else {
+                _R0 = edADD__unsafe__(R0, R1);
+                _R1 = edDBL__unsafe__(R1);
+            }
+
+            R0 = _R0;
+            R1 = _R1;
+        }
+
+        return R0;
     }
 
     PointMongomery xMUL(PointMongomery P, Int n)
@@ -181,6 +272,24 @@ public:
         P->x = mod(P->x * inverse(P->z, this->p), this->p);
         P->z = 1;
     }
+
+    void recoverXEdwards(PointEdwards* P)
+    {
+        if (P->x == EMPTY_X_COORDINATE_EDWARDS) {
+            P->x = sqrtMod((P->y*P->y - 1) * inverse(this->d*P->y*P->y + 1, this->p), this->p);
+            if (P->s)
+                P->x = this->p - P->x;
+        }
+    }
+
+    // ------------------------------ POINT CONVERTER -------------------------------
+    PointEdwards mongomeryToEdwards(PointMongomery P)
+    {
+        std::cerr << "[ ! ] Error! BaseCurve.h: mongomeryToEdwards() is not implemented." << std::endl;
+        exit(NOT_IMPLEMENTED_ERROR_CODE);
+        return PointEdwards();
+    }
+
 
     // ------------------------------ POINTS TO BUFFER ------------------------------
     Buffer serialize(PointMongomery P)
