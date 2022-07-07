@@ -119,11 +119,8 @@ Int mod(Int x, Int p)
 // ---------------------------------- SQRT MOD X ----------------------------------
 // -                    For now, assuming X is prime...                           -
 // --------------------------------------------------------------------------------
-Int legendreSymbol(Int x, Int p)
+bool isQuadraticResidue(Int x, Int p)
 {
-    // Could put a sanity check
-    // to see if p an odd prime.
-    // ...
     if (!isPrime(p)) {
         std::cerr << "[ ! ] Error! Calc.h: legendreSymbol(Int x, Int p): non prime p is not supported yet!" << std::endl;
         std::cerr << "[ ! ] Debug: x: " << x << std::endl;
@@ -131,22 +128,9 @@ Int legendreSymbol(Int x, Int p)
         exit(NOT_IMPLEMENTED_ERROR_CODE);
     }
 
-    // Actual implementation
-    return pow(x, (p-1)/2, p);
-}
-
-bool isQuadraticResidue(Int x, Int p)
-{
-    Int L = legendreSymbol(x, p);
-    if (L == 0 || L == 1)
+    if (mpz_legendre(x.get_mpz_t(), p.get_mpz_t()) == 1)
         return true;
     return false;
-}
-
-
-Int sqrt_mod__p_3_mod_4__unsafe__(Int x, Int p)
-{
-    return pow(x, (p+1)/4, p);
 }
 
 Int sqrt_mod(Int x, Int p)

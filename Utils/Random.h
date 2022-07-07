@@ -7,15 +7,16 @@
 #include "Buffer.h"
 #include "Calc.h"
 
-using namespace std;
-
 Buffer urandom(uint size)
 {
     Buffer buffer(size);
 
-    ifstream urandomStream("/dev/urandom");
-    urandomStream.read((char*)buffer.data(), size);
-    urandomStream.close();
+    FILE* urandomFilePtr = fopen("/dev/urandom", "rb");
+    if (fread(buffer.data(), 1, size, urandomFilePtr) < size) {
+        std::cerr << "[ ! ] Error! Random.h: urandom(uint size): Generate random buffer with size " << size << " failed." << std::endl;
+        exit(BUFFER_ERROR_CODE);
+    }
+    fclose(urandomFilePtr);
 
     return buffer;
 }

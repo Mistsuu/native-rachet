@@ -20,10 +20,12 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-    x3DHClass x3DH;
-        Buffer buf(1000);
-        buf.randomAll();
-        buf.__debug__();
+    ProtocolCurve curve;
+    cout << curve.onCurve(Point(9)) << endl;
+    cout << curve.onCurve(Point(123)) << endl;
+    cout << curve.onCurve(Point(1234)) << endl;
+    cout << curve.onCurve(Point(12345)) << endl;
+    cout << curve.onCurve(Point(123456789)) << endl;
 }
 
 // ----------------------------------------------------------------------------------------------------------/-

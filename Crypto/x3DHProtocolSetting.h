@@ -6,8 +6,8 @@
 #define KDF_INFO Buffer("mistsuuu_x3dhhh_ahhhhhh!!!")
 
 // ------------------------ curve settings ------------------------
-// #define USING_CURVE25519
-#define USING_CURVE448
+#define USING_CURVE25519
+// #define USING_CURVE448
 
 // ------------------------ hash settings ------------------------
 #define USING_SHA512

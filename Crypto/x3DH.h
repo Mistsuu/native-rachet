@@ -88,8 +88,11 @@ public:
 
 
     // -------------------- Signing functions --------------------
-    Buffer XMoDSA_sign(KeyPair signKey, Buffer message, Buffer randomData)
+    Buffer XMoDSA_sign(KeyPair signKey, Buffer message)
     {
+        // Generate random buffer...
+        Buffer randomData = urandom(64);
+        
         // Serialize some data
         Buffer serializedPubKey = this->serialize(signKey.publicKey);
         Buffer serializedPrvKey = this->serialize(signKey.privateKey);

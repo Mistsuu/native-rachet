@@ -110,7 +110,7 @@ public:
 
 
     // ------------------------------ ARITHMETICS ------------------------------
-    bool onCurve(Point& P)
+    bool onCurve(Point P)
     {
         if (P.z == 0)
             return true;
