@@ -72,7 +72,7 @@ protected:
         return PointEdwards(
             Rx,
             Ry,
-            (Rx % 2 == 0) ? 1 : 0
+            (Rx % 2 == 1) ? 1 : 0
         );
     }
 
@@ -87,8 +87,15 @@ protected:
         return PointEdwards(
             Rx,
             Ry,
-            (Rx % 2 == 0) ? 1 : 0
+            (Rx % 2 == 1) ? 1 : 0
         );
+    }
+
+    void edNEG__unsafe__(PointEdwards* P)
+    {
+        if (P->x != EMPTY_X_COORDINATE_EDWARDS)
+            P->x = this->p - P->x;
+        P->s = 1 - P->s;
     }
 
 public:
@@ -171,6 +178,18 @@ public:
             );
         }
     }
+
+    void edNEG(PointEdwards* P)
+    {
+        if (!onCurve(*P)) {
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Error: BaseCurve.h: edADD(): PointEdwards is not on curve.\n";
+            errorStream << "[ ! ]     P: " << P << std::endl;
+            throw InvalidPointException(errorStream.str());
+        }
+        edNEG__unsafe__(P);
+    }
+
 
     PointEdwards edADD(PointEdwards& P, PointEdwards& Q)
     {
@@ -279,7 +298,8 @@ public:
     {
         if (P->x == EMPTY_X_COORDINATE_EDWARDS) {
             P->x = sqrtMod((P->y*P->y - 1) * inverse(this->d*P->y*P->y + 1, this->p), this->p);
-            if (P->s)
+            if ((P->s == 1 && P->x % 2 == 0) 
+             || (P->s == 0 && P->x % 2 == 1))
                 P->x = this->p - P->x;
         }
     }

@@ -13,12 +13,12 @@ class PointEdwards
 public:
     Int x;
     Int y;
-    char s;
+    int s;
     PointEdwards(Int y)
     {
         this->x = EMPTY_X_COORDINATE_EDWARDS;
         this->y = y;
-        this->s = 1;
+        this->s = 0;
     }
 
     PointEdwards(Int y, int s)

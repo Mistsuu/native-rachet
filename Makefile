@@ -5,7 +5,7 @@ SOURCE_DIR  = src
 
 # Compilers options
 CC          = g++
-CFLAGS      = -I$(LIBRARY_DIR) -O3 -ggdb
+CFLAGS      = -I$(LIBRARY_DIR) -O3 -ggdb -fsanitize=address
 LIBS		= -lgmp -lgmpxx -lssl -lcrypto
 
 # Requirements and stuffs

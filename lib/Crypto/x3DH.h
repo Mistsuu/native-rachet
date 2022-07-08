@@ -174,9 +174,9 @@ public:
         PointEdwards edwardPublicTrunc = PointEdwards(edwardPublicFull.y, 0);
 
         if (edwardPublicFull.s == 1)
-            privateKey = (-privateKey, curve.modulus());
+            privateKey = mod(-privateKey, curve.generatorOrder());
         else
-            privateKey = ( privateKey, curve.modulus());
+            privateKey = mod( privateKey, curve.generatorOrder());
         
         return edwardPublicTrunc;
     }
@@ -187,31 +187,49 @@ public:
         Buffer randomData = urandom(64);
         
         // Do signing...
-        PointEdwards edwardPublic = this->calculateKeyPair(mongomeryPrivateKey);        
-        Int r = mod(
-            this->hash_i(1, 
-                this->serialize(edwardPublic) + message + randomData
-            ), curve.generatorOrder()
-        );
+        PointEdwards A = this->calculateKeyPair(mongomeryPrivateKey);
+        Int          r = this->hash_i(1, this->serialize(mongomeryPrivateKey) + message + randomData);
         PointEdwards R = curve.edMUL(curve.generatorPointEdwards(), r);
-        Int h = mod(
-            this->hash(
-                this->serialize(R) + this->serialize(edwardPublic) + message
-            ), curve.generatorOrder()
-        );
-        Int s = mod((r + h*mongomeryPrivateKey), curve.generatorOrder());
+        Int          h = this->hash(this->serialize(R) + this->serialize(A) + message);
+        Int          s = mod((r + h*mongomeryPrivateKey), curve.generatorOrder());
 
         // Return serialized buffer...
         return this->serialize(R) + this->serialize(s);
     }
 
-    bool XEdDSA_verify(Buffer serializePublicKey, Buffer message, Buffer signature)
+    bool XEdDSA_verify(Buffer serializedMongomeryPublicKey, Buffer message, Buffer signature)
     {
-        PointMongomery mongomeryPublicKey = this->deserializeMongomeryPoint(serializePublicKey);
-        PointEdwards   edwardSignPoint    = this->deserializeEdwardPoint(signature[{(int)curve.curveSizeBytes()}]);
-        Int            s                  = this->deserializeInt(signature[{-(int)curve.curveSizeBytes()}]);
+        try {
+            // Throw exception here.
+            if (signature.len() != curve.curveSizeBytes() * 2) {
+                std::stringstream errorStream;
+                errorStream << "[ ! ] Error! x3DH.h: XEdDSA_verify(): Signature is in wrong length! Got " << signature.len() << " instead of " << curve.curveSizeBytes() * 2 << "!" << std::endl;
+                errorStream << "[ ! ]     Buffer (in hex): " << signature.toHex() << std::endl;
+                throw DeserializeErrorException(errorStream.str());
+            }
 
-        return 1;
+            // Verify part.
+            PointMongomery U                  = this->deserializeMongomeryPoint(serializedMongomeryPublicKey);
+            Buffer         Rserialize         = signature[{(int)curve.curveSizeBytes()}];
+            PointEdwards   R                  = this->deserializeEdwardPoint(Rserialize);
+            Int            s                  = this->deserializeInt(signature[{-(int)curve.curveSizeBytes()}]);
+            PointEdwards   A                  = curve.mongomeryToEdwards(U);
+            Int            h                  = mod(this->hash(Rserialize + this->serialize(A) + message), curve.generatorOrder());
+            PointEdwards   sB                 = curve.edMUL(curve.generatorPointEdwards(), s);
+            PointEdwards   hA                 = curve.edMUL(A, h); curve.edNEG(&hA);
+            PointEdwards   Rverify            = curve.edADD(sB, hA);
+            if (Rverify.y == R.y && Rverify.s == R.s)
+                return true;
+            return false;
+
+        } catch (InvalidPointException e) {
+                cout << "here" << endl;
+            return false;
+        } catch (DeserializeErrorException e) {
+                cout << "here" << endl;
+            return false;
+        }
+        return false;
     }
 
 

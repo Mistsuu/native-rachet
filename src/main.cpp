@@ -19,18 +19,16 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-    try {
-        Buffer buffer("1234567890123456789012345678901234567890123456789012345678901234567890123456789012345helloimmmistsu");
-        buffer[{84353908}].__debug__();
-    } catch (std::exception& ex) {
-        cout << ex.what() << endl;
-        cout << ex.what() << endl;
-        cout << ex.what() << endl;
-        cout << ex.what() << endl;
-        cout << ex.what() << endl;
-    }
-}
+    x3DHClass      x3DH;
+    Int            privateKey = randbelow(Int("100000000000000000"));
+    Buffer         signature = x3DH.XEdDSA_sign(privateKey, Buffer("Nonanonananona"));
+    PointMongomery publicKey = x3DH.curve.xMUL(x3DH.curve.generatorPointMongomery(), privateKey);
+    cout << "[ i ] Signature:\n"; signature.__debug__(); cout << "\n";
+    cout << "[ i ] PublicKey:\n"; cout << publicKey << "\n\n";
+    cout << "[ i ] Verify:\n";
+    cout << x3DH.XEdDSA_verify(x3DH.serialize(publicKey), Buffer("Nonanonananona"), signature) << endl;
 
+}
 // ----------------------------------------------------------------------------------------------------------/-
 
 #pragma GCC diagnostic pop
