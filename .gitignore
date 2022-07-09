@@ -1,3 +1,5 @@
 .vscode
 runcpp
 obj
+main
+massif.*
