@@ -23,10 +23,7 @@ int main(int argc, char** argv)
     Int            privateKey = randbelow(Int("100000000000000000"));
     Buffer         signature = x3DH.XEdDSA_sign(privateKey, Buffer("Nonanonananona"));
     PointMongomery publicKey = x3DH.curve.xMUL(x3DH.curve.generatorPointMongomery(), privateKey);
-    cout << "[ i ] Signature:\n"; signature.__debug__(); cout << "\n";
-    cout << "[ i ] PublicKey:\n"; cout << publicKey << "\n\n";
-    cout << "[ i ] Verify:\n";
-    cout << x3DH.XEdDSA_verify(x3DH.serialize(publicKey), Buffer("Nonanonananona"), signature) << endl;
+    x3DH.XEdDSA_verify(x3DH.serialize(publicKey), Buffer("Nonanonananona"), signature);
 
 }
 // ----------------------------------------------------------------------------------------------------------/-
