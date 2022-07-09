@@ -465,6 +465,7 @@ public:
         return dupBuffer;
     }
 
+
     // ----------------------------- MUL*= -----------------------------
     void operator*= (int noDup)
     {
@@ -487,6 +488,7 @@ public:
             memcpy(&this->head[this->size * i], this->head, this->size);
         this->size *= noDup;
     }
+
 
     // ----------------------------- XOR^ -----------------------------
     Buffer operator^ (Buffer const &buf)
@@ -527,6 +529,7 @@ public:
 
         return Buffer(this->head[0] ^ chr);
     }
+
 
     // ----------------------------- XOR^= -----------------------------
     void operator^= (Buffer const &buf)
@@ -579,7 +582,6 @@ public:
             index += (int)this->size;
         return index;
     }
-
 
     inline u_char& operator[] (int index)
     {
@@ -674,6 +676,7 @@ public:
         return this->size;
     }
 
+
     // ----------------------------- HEX UTILS -----------------------------
     string toHex()
     {
@@ -729,6 +732,7 @@ public:
 
         return newBuffer;
     }
+
 
     // ----------------------------- NUM UTILS -----------------------------
     static Buffer fromInt(Int num, uint size, bool bigEndian=true)
@@ -821,6 +825,7 @@ Buffer operator+(char chr, Buffer buf)
     return newBuffer;
 }
 
+
 // ----------------------------- LMUL* -----------------------------
 Buffer operator* (int noDup, Buffer buf)
 {
@@ -840,6 +845,7 @@ Buffer operator* (int noDup, Buffer buf)
         memcpy(&dupBufHead[buf.len() * i], buf.data(), buf.len());
     return dupBuffer;
 }
+
 
 // ----------------------------- LGT> -----------------------------
 bool operator> (string const &str, Buffer buf)
@@ -861,6 +867,7 @@ bool operator> (char chr, Buffer buf)
     return buf.data() 
         && chr > buf.data()[0];
 }
+
 
 // ----------------------------- LGE>= -----------------------------
 bool operator>= (string const &str, Buffer buf)
@@ -905,6 +912,7 @@ bool operator< (char chr, Buffer buf)
         && chr < buf.data()[0];
 }
 
+
 // ----------------------------- LLE<= -----------------------------
 bool operator<= (string const &str, Buffer buf)
 {
@@ -925,6 +933,7 @@ bool operator<= (char chr, Buffer buf)
     return buf.data() 
         && chr <= buf.data()[0];
 }
+
 
 // ----------------------------- LEQ== -----------------------------
 bool operator== (string const &str, Buffer buf)
@@ -957,6 +966,7 @@ bool operator!= (char chr, Buffer buf)
         && buf.data()[0] != chr);
 }
 
+
 // ----------------------------- XOR^ -----------------------------
 Buffer operator^ (string const &str, Buffer buf)
 {
@@ -982,6 +992,7 @@ Buffer operator^ (char chr, Buffer buf)
 
     return Buffer(buf[0] ^ chr);
 }
+
 
 // ----------------------------- CONVERSIONS -----------------------------
 Int bytesToInt(u_char* bufferInt, int size, bool bigEndian=true)
