@@ -32,7 +32,13 @@ class SkippedKeyNode
 {
 public:
     PointMongomery DHPublic;
-    uint           iMess;
+    Int            iMess;
+
+    SkippedKeyNode(PointMongomery DHPublic, Int iMess) 
+    {
+        this->DHPublic = DHPublic;
+        this->iMess = iMess;
+    }
 };
 
 class RachetState
@@ -54,13 +60,13 @@ class RachetHeader
 public:
     PointMongomery publicKey;
     Int            prevChainLen;
-    Int            iMessSend;
+    Int            iMess;
 
-    RachetHeader(PointMongomery publicKey, Int prevChainLen, Int iMessSend)
+    RachetHeader(PointMongomery publicKey, Int prevChainLen, Int iMess)
     {
         this->publicKey = publicKey;
         this->prevChainLen = prevChainLen;
-        this->iMessSend = iMessSend;
+        this->iMess = iMess;
     }
 };
 
@@ -143,7 +149,7 @@ public:
         // Check if valid
         if (!curve.onCurve(P)) {
             std::stringstream errorStream;
-            errorStream << "[ ! ] Error! x3DH.h: serialize(): Serializing PointEdwards P not on curve!" << std::endl;
+            errorStream << "[ ! ] Error! SignalProtocol.h: serialize(): Serializing PointEdwards P not on curve!" << std::endl;
             errorStream << "[ ! ]     P: " << P << std::endl;
             throw InvalidPointException(errorStream.str());
         }
@@ -158,7 +164,7 @@ public:
         // Check if valid
         if (!curve.onCurve(P)) {
             std::stringstream errorStream;
-            errorStream << "[ ! ] Error! x3DH.h: serialize(): Serializing PointMongomery P not on curve!" << std::endl;
+            errorStream << "[ ! ] Error! SignalProtocol.h: serialize(): Serializing PointMongomery P not on curve!" << std::endl;
             errorStream << "[ ! ]     P: " << P << std::endl;
             throw InvalidPointException(errorStream.str());
         }
@@ -179,14 +185,14 @@ public:
 
     inline Buffer serialize(RachetHeader header)
     {
-        return this->serialize(header.publicKey) + Buffer::fromInt(header.prevChainLen, 4) + Buffer::fromInt(header.iMessSend, 4);
+        return this->serialize(header.publicKey) + Buffer::fromInt(header.prevChainLen, 4) + Buffer::fromInt(header.iMess, 4);
     }
 
     inline PointEdwards deserializeEdwardPoint(Buffer edwardPointBuffer)
     {
         if (edwardPointBuffer.len() != curve.curveSizeBytes()) {
             std::stringstream errorStream;
-            errorStream << "[ ! ] Error! x3DH.h: deserializeEdwardPoint(): Cannot deserialize the buffer! Wrong length! Got " << edwardPointBuffer.len() << " instead of " << curve.curveSizeBytes() << "!" << std::endl;
+            errorStream << "[ ! ] Error! SignalProtocol.h: deserializeEdwardPoint(): Cannot deserialize the buffer! Wrong length! Got " << edwardPointBuffer.len() << " instead of " << curve.curveSizeBytes() << "!" << std::endl;
             errorStream << "[ ! ]     Buffer (in hex): " << edwardPointBuffer.toHex() << std::endl;
             throw DeserializeErrorException(errorStream.str());
         }
@@ -200,7 +206,7 @@ public:
         // Check if valid
         if (!curve.onCurve(parsedEdwardPoint)) {
             std::stringstream errorStream;
-            errorStream << "[ ! ] Error! x3DH.h: deserializeEdwardPoint(): Deserialize buffer leads to point not on curve!" << std::endl;
+            errorStream << "[ ! ] Error! SignalProtocol.h: deserializeEdwardPoint(): Deserialize buffer leads to point not on curve!" << std::endl;
             errorStream << "[ ! ]     Buffer (in hex): " << edwardPointBuffer.toHex() << std::endl;
             errorStream << "[ ! ]     Parsed point: "    << parsedEdwardPoint         << std::endl;
             throw InvalidPointException(errorStream.str());
@@ -214,7 +220,7 @@ public:
     {
         if (mongomeryPointBuffer.len() != curve.curveSizeBytes()) {
             std::stringstream errorStream;
-            errorStream << "[ ! ] Error! x3DH.h: deserializeMongomeryPoint(): Cannot deserialize the buffer! Wrong length! Got " << mongomeryPointBuffer.len() << " instead of " << curve.curveSizeBytes() << "!" << std::endl;
+            errorStream << "[ ! ] Error! SignalProtocol.h: deserializeMongomeryPoint(): Cannot deserialize the buffer! Wrong length! Got " << mongomeryPointBuffer.len() << " instead of " << curve.curveSizeBytes() << "!" << std::endl;
             errorStream << "[ ! ]     Buffer (in hex): " << mongomeryPointBuffer.toHex() << std::endl;
             throw DeserializeErrorException(errorStream.str());
         }
@@ -228,7 +234,7 @@ public:
         // Check if valid
         if (!curve.onCurve(parsedMongomeryPoint)) {
             std::stringstream errorStream;
-            errorStream << "[ ! ] Error! x3DH.h: deserializeMongomeryPoint(): Deserialize buffer leads to point not on curve!" << std::endl;
+            errorStream << "[ ! ] Error! SignalProtocol.h: deserializeMongomeryPoint(): Deserialize buffer leads to point not on curve!" << std::endl;
             errorStream << "[ ! ]     Buffer (in hex): " << mongomeryPointBuffer.toHex() << std::endl;
             errorStream << "[ ! ]     Parsed point: "    << parsedMongomeryPoint         << std::endl;
             throw InvalidPointException(errorStream.str());
@@ -247,7 +253,7 @@ public:
     {
         if (headerBuffer.len() != curve.curveSizeBytes() + 8) {
             std::stringstream errorStream;
-            errorStream << "[ ! ] Error! x3DH.h: deserializeMongomeryPoint(): Cannot deserialize the buffer! Wrong length! Got " << headerBuffer.len() << " instead of " << curve.curveSizeBytes() + 8 << "!" << std::endl;
+            errorStream << "[ ! ] Error! SignalProtocol.h: deserializeMongomeryPoint(): Cannot deserialize the buffer! Wrong length! Got " << headerBuffer.len() << " instead of " << curve.curveSizeBytes() + 8 << "!" << std::endl;
             errorStream << "[ ! ]     Buffer (in hex): " << headerBuffer.toHex() << std::endl;
             throw DeserializeErrorException(errorStream.str());
         }
@@ -309,7 +315,7 @@ public:
             // Throw exception here.
             if (signature.len() != curve.curveSizeBytes() * 2) {
                 std::stringstream errorStream;
-                errorStream << "[ ! ] Error! x3DH.h: XEdDSA_verify(): Signature is in wrong length! Got " << signature.len() << " instead of " << curve.curveSizeBytes() * 2 << "!" << std::endl;
+                errorStream << "[ ! ] Error! SignalProtocol.h: XEdDSA_verify(): Signature is in wrong length! Got " << signature.len() << " instead of " << curve.curveSizeBytes() * 2 << "!" << std::endl;
                 errorStream << "[ ! ]     Buffer (in hex): " << signature.toHex() << std::endl;
                 throw DeserializeErrorException(errorStream.str());
             }
@@ -340,7 +346,53 @@ public:
     // --------------------- Encryption!! --------------------------
     Buffer innerEncrypt(Buffer messageKey, Buffer plaintext, Buffer associatedData)
     {
-        
+        Buffer encryptMaterial = this->HKDF(
+                                    80,
+                                    messageKey,
+                                    Buffer(),
+                                    KDF_INFO_GET_ENCRYPTKEY
+                                 );
+
+        Buffer encryptKey = encryptMaterial[{32}];
+        Buffer authKey    = encryptMaterial[{32, 64}];
+        Buffer IV         = encryptMaterial[{-16}];
+        Buffer ciphertext = ProtocolCrypt().encrypt(IV, encryptKey, plaintext);
+        Buffer authData   = ProtocolHMAC().digest(authKey, associatedData);
+        return associatedData + ciphertext + authData; 
+    }
+
+    Buffer innerDecrypt(Buffer messageKey, Buffer ciphertext, Buffer associatedData)
+    {
+        Buffer encryptMaterial = this->HKDF(
+                                    80,
+                                    messageKey,
+                                    Buffer(),
+                                    KDF_INFO_GET_ENCRYPTKEY
+                                 );
+
+        Buffer encryptKey = encryptMaterial[{32}];
+        Buffer authKey    = encryptMaterial[{32, 64}];
+        Buffer IV         = encryptMaterial[{-16}];
+
+        Buffer theirAssocData = ciphertext[{ (int)(curve.curveSizeBytes() * 2) }];
+        Buffer ourAuthData    = ProtocolHMAC().digest(authKey, theirAssocData);
+        Buffer theirAuthData  = ciphertext[{ -(int)ProtocolHMAC().outputSize }];
+        if (ourAuthData != theirAuthData) {
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Error! SignalProtocol.h: innerDecrypt(): AuthData not match!" << std::endl;
+            errorStream << "[ ! ]     IV               (in hex): " << IV.toHex() << std::endl;
+            errorStream << "[ ! ]     authKey          (in hex): " << authKey.toHex() << std::endl;
+            errorStream << "[ ! ]     encryptKey       (in hex): " << encryptKey.toHex() << std::endl;
+            errorStream << "[ ! ]     messageKey       (in hex): " << messageKey.toHex() << std::endl;
+            errorStream << "[ ! ]     ourAssocData     (in hex): " << associatedData.toHex() << std::endl;
+            errorStream << "[ ! ]     theirAssocData   (in hex): " << theirAssocData.toHex() << std::endl;
+            errorStream << "[ ! ]     ourAuthData      (in hex): " << ourAuthData.toHex() << std::endl;
+            errorStream << "[ ! ]     theirAuthData    (in hex): " << theirAuthData.toHex() << std::endl;
+            throw DeserializeErrorException(errorStream.str());
+        }
+
+        ciphertext = ciphertext[{ (int)theirAssocData.len(), -(int)ourAuthData.len() }];
+        return ProtocolCrypt().decrypt(IV, encryptKey, ciphertext);
     }
 
     // -------------------- Key-exchange functions --------------------
@@ -348,7 +400,7 @@ public:
     {
         if (ourPrivateKey == PRIVATE_KEY_NULL) {
             std::stringstream errorStream;
-            errorStream << "[ ! ] Error! x3DH.h: calculateDHSharedSecret(): Private key is empty!" << std::endl;
+            errorStream << "[ ! ] Error! SignalProtocol.h: calculateDHSharedSecret(): Private key is empty!" << std::endl;
             throw KeyErrorException(errorStream.str());
         }
         return curve.xMUL(theirPublicKey, ourPrivateKey);
@@ -370,43 +422,126 @@ public:
 
 
     // -------------------- Rachet-encryption functions -----------------------
-    void RachetInitAlice(RachetState* state, Buffer sharedSecret, PointMongomery bobPublicKey)
+    void rachetInitAlice(RachetState* state, Buffer sharedSecret, PointMongomery bobPublicKey)
     {
-        state->DHSend       = this->generateKeyPair();
-        state->DHRecv       = bobPublicKey;
-        state->rootKey      = sharedSecret;
-        state->chainKeyRecv = Buffer("");
+        if (state) {
+            state->DHSend       = this->generateKeyPair();
+            state->DHRecv       = bobPublicKey;
+            state->rootKey      = sharedSecret;
+            state->chainKeyRecv = Buffer("");
+            state->iMessSend    = 0;
+            state->iMessRecv    = 0;
+            state->prevChainLen = 0;
+            state->skippedKeys  = {};
+            state->chainKeySend = this->updateRootKey(
+                                    &state->rootKey, 
+                                    this->serialize(this->calculateDHSharedSecret(state->DHSend.privateKey, state->DHRecv))
+                                );
+        }
+    }
+
+    void rachetInitBob(RachetState* state, Buffer sharedSecret, KeyPair bobKeyPair)
+    {
+        if (state) {
+            state->DHSend       = bobKeyPair;
+            state->DHRecv       = PointMongomery::nullPoint();
+            state->rootKey      = sharedSecret;
+            state->chainKeySend = Buffer(""); 
+            state->chainKeyRecv = Buffer("");
+            state->iMessSend    = 0; 
+            state->iMessRecv    = 0; 
+            state->prevChainLen = 0;
+            state->skippedKeys  = {}; 
+        }
+    }
+
+    Buffer rachetEncrypt(RachetState* state, Buffer plaintext, Buffer associatedData, RachetHeader* header)
+    {
+        if (state && header) {
+            Buffer messageKey = this->updateChainKey(&state->chainKeySend);
+            *header = RachetHeader(
+                        state->DHSend.publicKey, 
+                        state->prevChainLen, 
+                        state->iMessSend
+                      );
+            state->iMessSend += 1;
+            return this->innerEncrypt(messageKey, plaintext, associatedData + this->serialize(*header));
+        }
+    }
+
+    Buffer tryDecryptBySkippedKeys(RachetState* state, RachetHeader header, Buffer ciphertext, Buffer associatedData, bool* success)
+    {
+        for (int i = 0; i < state->skippedKeys.size(); ++i) {
+            SkippedKeyNode node = SkippedKeyNode(
+                state->skippedKeys[i].first.DHPublic,
+                state->skippedKeys[i].first.iMess                
+            );
+
+            if (curve.comparePoint(node.DHPublic, state->DHRecv) && node.iMess == header.iMess) {
+                Buffer messageKey = state->skippedKeys[i].second; 
+                state->skippedKeys.erase(state->skippedKeys.begin() + i);
+                *success = true;
+                return this->innerDecrypt(messageKey, ciphertext, associatedData + this->serialize(header));
+            }
+        }
+
+        *success = false;
+        return Buffer();
+    }
+
+    void trySkipMessageKeys(RachetState* state, Int iMess)
+    {
+        if (state->iMessRecv + MAX_SKIP_MESSAGE_KEYS < iMess) {
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Error! SignalProtocol.h: trySkipMessageKeys(): iMess overflow! Got " << iMess << "! The upper index is " << state->iMessRecv + MAX_SKIP_MESSAGE_KEYS << "." << std::endl;
+            errorStream << "[ ! ]     iMess: " << iMess << std::endl;
+            throw KeyErrorException(errorStream.str());
+        }
+
+        if (state->chainKeyRecv.len() != 0) {
+            Buffer messageKey;
+            while (state->iMessRecv < iMess) {
+                messageKey = this->updateChainKey(&state->chainKeyRecv);
+                state->skippedKeys.push_back(
+                                      std::make_pair(
+                                        SkippedKeyNode(state->DHRecv, state->iMessRecv),
+                                        messageKey
+                                      )
+                                   );
+                state->iMessRecv++;
+            }
+        }
+    }
+
+    void dhRachet(RachetState* state, RachetHeader header)
+    {
+        state->prevChainLen = state->iMessRecv;
         state->iMessSend    = 0;
         state->iMessRecv    = 0;
-        state->prevChainLen = 0;
-        state->skippedKeys  = {};
-        state->chainKeySend = this->updateRootKey(
-                                &state->rootKey, 
-                                this->serialize(this->calculateDHSharedSecret(state->DHSend.privateKey, state->DHRecv))
-                              );
+        state->DHRecv       = header.publicKey;
+        state->chainKeyRecv = this->updateRootKey(&state->rootKey, this->serialize(this->calculateDHSharedSecret(state->DHSend.privateKey, state->DHRecv)));
+        state->DHSend       = this->generateKeyPair();
+        state->chainKeySend = this->updateRootKey(&state->rootKey, this->serialize(this->calculateDHSharedSecret(state->DHSend.privateKey, state->DHRecv)));
     }
 
-    void RachetInitBob(RachetState* state, Buffer sharedSecret, KeyPair bobKeyPair)
+    Buffer rachetDecrypt(RachetState* state, RachetHeader header, Buffer ciphertext, Buffer associatedData)
     {
-        state->DHSend       = bobKeyPair;
-        state->DHRecv       = PointMongomery::nullPoint();
-        state->rootKey      = sharedSecret;
-        state->chainKeySend = Buffer(""); 
-        state->chainKeyRecv = Buffer("");
-        state->iMessSend    = 0; 
-        state->iMessRecv    = 0; 
-        state->prevChainLen = 0;
-        state->skippedKeys  = {}; 
+        bool   success   = false;
+        Buffer plaintext = this->tryDecryptBySkippedKeys(state, header, ciphertext, associatedData, &success);
+        if (success)
+            return plaintext;
+
+        if (!curve.comparePoint(header.publicKey, state->DHRecv)) {
+            this->trySkipMessageKeys(state, header.prevChainLen);
+            this->dhRachet(state, header);
+        }
+
+        this->trySkipMessageKeys(state, header.iMess);
+        Buffer messageKey = this->updateChainKey(&state->chainKeyRecv);
+        state->iMessRecv++;
+
+        return this->innerDecrypt(messageKey, ciphertext, associatedData + this->serialize(header));
     }
 
-    RachetHeader RachetEncrypt(RachetState* state, Buffer plaintext, Buffer associatedData, Buffer* ciphertext)
-    {
-        Buffer messageKey = this->updateChainKey(&state->chainKeySend);
-        RachetHeader header = RachetHeader(state->DHSend.publicKey, state->prevChainLen, state->iMessSend);
-        
-        state->iMessSend += 1;
-        (*ciphertext) = this->innerEncrypt(messageKey, plaintext, associatedData + this->serialize(header));
-        
-        return header;
-    }
+    
 };

@@ -26,7 +26,7 @@ public:
         if (IV.len() != AES_BLOCK_SIZE) {
             std::stringstream errorStream;
             errorStream << "[ ! ] Error! AES256_CBCCrypt.h: encrypt(): IV.length is not " << AES_BLOCK_SIZE << "! Got: " << IV.len() << std::endl;
-            errorStream << "[ ! ]      IV.hex(): " << IV.toHex() << endl;
+            errorStream << "[ ! ]      IV (in hex): " << IV.toHex() << endl;
             throw CryptFailException(errorStream.str());
             return Buffer();
         }
@@ -34,7 +34,7 @@ public:
         if (key.len() != AES_KEYLENGTH / 8) {
             std::stringstream errorStream;
             errorStream << "[ ! ] Error! AES256_CBCCrypt.h: encrypt(): key.length is not " << AES_KEYLENGTH / 8 << "! Got: " << key.len() << std::endl;
-            errorStream << "[ ! ]      key.hex(): " << key.toHex() << endl;
+            errorStream << "[ ! ]      key (in hex): " << key.toHex() << endl;
             throw CryptFailException(errorStream.str());
             return Buffer();
         }
@@ -55,7 +55,7 @@ public:
         if (IV.len() != AES_BLOCK_SIZE) {
             std::stringstream errorStream;
             errorStream << "[ ! ] Error! AES256_CBCCrypt.h: decrypt(): IV.length is not " << AES_BLOCK_SIZE << "! Got: " << IV.len() << std::endl;
-            errorStream << "[ ! ]      IV.hex(): " << IV.toHex() << endl;
+            errorStream << "[ ! ]      IV (in hex): " << IV.toHex() << endl;
             throw CryptFailException(errorStream.str());
             return Buffer();
         }
@@ -63,7 +63,7 @@ public:
         if (key.len() != AES_KEYLENGTH / 8) {
             std::stringstream errorStream;
             errorStream << "[ ! ] Error! AES256_CBCCrypt.h: decrypt(): key.length is not " << AES_KEYLENGTH / 8 << "! Got: " << key.len() << std::endl;
-            errorStream << "[ ! ]      key.hex(): " << key.toHex() << endl;
+            errorStream << "[ ! ]      key (in hex): " << key.toHex() << endl;
             throw CryptFailException(errorStream.str());
             return Buffer();
         }
@@ -71,7 +71,7 @@ public:
         if (ciphertext.len() % AES_BLOCK_SIZE != 0) {
             std::stringstream errorStream;
             errorStream << "[ ! ] Error! AES256_CBCCrypt.h: decrypt(): ciphertext.length does not divisible by " << AES_BLOCK_SIZE << "! Got: " << ciphertext.len() << std::endl;
-            errorStream << "[ ! ]      ciphertext.hex(): " << ciphertext.toHex() << endl;
+            errorStream << "[ ! ]      ciphertext (in hex): " << ciphertext.toHex() << endl;
             throw CryptFailException(errorStream.str());
             return Buffer();
         }

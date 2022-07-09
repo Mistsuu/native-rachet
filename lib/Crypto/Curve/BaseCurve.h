@@ -278,6 +278,7 @@ public:
         return R0;
     }
 
+
     // ------------------------------ "FIX" POINTS ------------------------------
     void normalize(PointMongomery* P) 
     {
@@ -303,6 +304,24 @@ public:
                 P->x = this->p - P->x;
         }
     }
+
+
+    // ------------------------------ COMPARE ---------------------------------
+    bool comparePoint(PointMongomery P, PointMongomery Q)
+    {
+        if (P.isNull() && Q.isNull())
+            return true;
+        if (P.isNull() || Q.isNull())
+            return false;
+        if (P.z == 0 && Q.z == 0)
+            return true;
+        if (P.z == 0 || Q.z == 0)
+            return false;
+        this->normalize(&P);
+        this->normalize(&Q);
+        return P.x == Q.x;
+    }
+
 
     // ------------------------------ POINT CONVERTER -------------------------------
     PointEdwards mongomeryToEdwards(PointMongomery P)

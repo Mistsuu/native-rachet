@@ -22,7 +22,7 @@
 
 // ------------------------ key batch settings ---------------------------
 #define ONETIME_PREKEYS_BATCH_SIZE 100
-
+#define MAX_SKIP_MESSAGE_KEYS 100
 
 #if defined(USING_CURVE25519)
     #include "Curve/Curve25519.h"

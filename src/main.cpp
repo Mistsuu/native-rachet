@@ -26,9 +26,6 @@ int main(int argc, char** argv)
         Buffer message = Buffer("hello, this is to becrypted!");
         Buffer ciphertext = crypt.encrypt(IV, key, message);
         
-        IV.__debug__();
-        key.__debug__();
-        ciphertext.__debug__();
         crypt.decrypt(IV, key, ciphertext).__debug__();
     } catch (CryptFailException e) {
         cout << e.what() << endl;
