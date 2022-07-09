@@ -68,6 +68,8 @@ public:
         this->prevChainLen = prevChainLen;
         this->iMess = iMess;
     }
+
+    RachetHeader() {}
 };
 
 class SignalProtocol {
@@ -374,7 +376,7 @@ public:
         Buffer authKey    = encryptMaterial[{32, 64}];
         Buffer IV         = encryptMaterial[{-16}];
 
-        Buffer theirAssocData = ciphertext[{ (int)(curve.curveSizeBytes() * 2) }];
+        Buffer theirAssocData = ciphertext[{ (int)(curve.curveSizeBytes() * 3 + 8) }];
         Buffer ourAuthData    = ProtocolHMAC().digest(authKey, theirAssocData);
         Buffer theirAuthData  = ciphertext[{ -(int)ProtocolHMAC().outputSize }];
         if (ourAuthData != theirAuthData) {
@@ -424,9 +426,9 @@ public:
         return KDF((DH1 + DH2) + (DH3 + DH4));
     }
 
-    Buffer calculateAssociatedData(x3DHPreKeyBundleA ourKey, x3DHPreKeyBundleB theirKey)
+    Buffer calculateAssociatedData(x3DHPreKeyBundleA keyAlice, x3DHPreKeyBundleB keyBob)
     {
-        return this->serialize(ourKey.identityKey.publicKey) + this->serialize(theirKey.identityKey.publicKey);
+        return this->serialize(keyAlice.identityKey.publicKey) + this->serialize(keyBob.identityKey.publicKey);
     }
 
 
