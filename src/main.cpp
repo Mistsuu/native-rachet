@@ -19,11 +19,7 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-    x3DHClass      x3DH;
-    Int            privateKey = randbelow(Int("100000000000000000"));
-    Buffer         signature = x3DH.XEdDSA_sign(privateKey, Buffer("Nonanonananona"));
-    PointMongomery publicKey = x3DH.curve.xMUL(x3DH.curve.generatorPointMongomery(), privateKey);
-    x3DH.XEdDSA_verify(x3DH.serialize(publicKey), Buffer("Nonanonananona"), signature);
+    x3DHClass x3DH;
 
 }
 // ----------------------------------------------------------------------------------------------------------/-

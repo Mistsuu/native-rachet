@@ -1,8 +1,7 @@
 #pragma once
 
 #include "Utils/Utils.h"
-#include "Hash/SHA256.h"
-#include "Signing/HKDF.h"
+#include "Hash/SHA512.h"
 #include "x3DHProtocolSetting.h"
 
 class x3DHPreKeyBundle
@@ -33,9 +32,27 @@ class x3DHClass {
 public:
     ProtocolCurve curve;
 
+    Buffer HKDF(int length, Buffer inputKeyMaterial, Buffer salt, Buffer info)
+    {
+        ProtocolHMAC HMACObj;
+
+        if (salt.len() == 0)
+            salt = Buffer('\x00') * HMACObj.outputSize;
+            
+        Buffer prk = HMACObj.digest(salt, inputKeyMaterial);
+        Buffer tmp = Buffer();
+        Buffer outputKeyMaterial = Buffer();
+        for (int i = 0; i < ceildiv(length, HMACObj.outputSize); ++i) {
+            tmp = HMACObj.digest(prk, tmp + info + Buffer((char)(i+1)));
+            outputKeyMaterial += tmp;
+        }
+
+        return outputKeyMaterial[{length}];
+    }
+
     Buffer KDF(Buffer keyMaterial)
     {
-        return HKDF(
+        return this->HKDF(
             32, 
             F + keyMaterial,
             Buffer(""),
@@ -157,7 +174,7 @@ public:
     // -------------------- Hash functions --------------------
     inline Int hash(Buffer input)
     {
-        return ProtocolHash(input).intdigest();
+        return SHA512Hash(input).intdigest();
     }
 
     inline Int hash_i(uint i, Buffer input)

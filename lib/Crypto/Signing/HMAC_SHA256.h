@@ -2,9 +2,9 @@
 
 #include "Utils/Utils.h"
 #include "Crypto/Hash/SHA256.h"
-#include "HMAC.h"
+#include "BaseHMAC.h"
 
-class HMAC_SHA256: public HMAC
+class HMAC_SHA256: public BaseHMAC
 {
     Buffer padKey(Buffer key)
     {

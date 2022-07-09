@@ -10,9 +10,8 @@
 // #define USING_CURVE448
 
 // ------------------------ hash settings ------------------------
-#define USING_SHA512
-// #define USING_SHA256
-// #define USING_ELLIGATOR2
+// #define USING_SHA512
+#define USING_SHA256
 
 // ------------------------ key batch settings ---------------------------
 #define ONETIME_PREKEYS_BATCH_SIZE 100
@@ -38,11 +37,12 @@
 //  
 #if defined(USING_SHA512)
     #include "Hash/SHA512.h"
+    #include "Signing/HMAC_SHA512.h"
     typedef SHA512Hash ProtocolHash;
+    typedef HMAC_SHA512 ProtocolHMAC;
 #elif defined(USING_SHA256)
     #include "Hash/SHA256.h"
-    typedef SHA256 ProtocolHash;
-#elif defined(USING_ELLIGATOR2)
-    #include "Hash/Elligator2.h"
-    typedef Elligator2 ProtocolHash;
+    #include "Signing/HMAC_SHA256.h"
+    typedef SHA256Hash ProtocolHash;
+    typedef HMAC_SHA256 ProtocolHMAC;
 #endif

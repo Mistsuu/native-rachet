@@ -2,7 +2,7 @@
 
 #include "Utils/Utils.h"
 
-class HMAC
+class BaseHMAC
 {
     Buffer padKey(Buffer key)
     {
