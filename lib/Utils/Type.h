@@ -10,5 +10,6 @@
 #include <openssl/sha.h>
 #include <gmp.h>
 #include <vector>
+#include <utility>
 
 typedef mpz_class Int;

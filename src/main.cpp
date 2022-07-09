@@ -13,13 +13,22 @@
 
 #include <gmpxx.h>
 #include <iostream>
-#include "Crypto/x3DH.h"
+#include "Crypto/SignalProtocol.h"
 
 using namespace std;
 
 int main(int argc, char** argv)
 {
-    x3DHClass x3DH;
+    SignalProtocol signalProto;
+
+    RachetState state;
+    KeyPair keyPair1 = signalProto.generateKeyPair();
+    KeyPair keyPair2 = signalProto.generateKeyPair();
+    signalProto.RachetInitAlice(
+        &state,
+        keyPair1.publicKey,
+        keyPair2.publicKey
+    );
 
 }
 // ----------------------------------------------------------------------------------------------------------/-

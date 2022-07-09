@@ -2,7 +2,7 @@
 
 #include "Utils/Utils.h"
 #include "Hash/SHA512.h"
-#include "x3DHProtocolSetting.h"
+#include "SignalProtocolSettings.h"
 
 class x3DHPreKeyBundle
 {
@@ -28,7 +28,28 @@ public:
     KeyPair oneTimePreKey;
 };
 
-class x3DHClass {
+class SkippedKeyNode
+{
+public:
+    PointMongomery DHPublic;
+    uint           iMess;
+};
+
+class RachetState
+{
+public:
+    KeyPair        DHSend;
+    PointMongomery DHRecv;
+    Buffer         rootKey;
+    Buffer         chainKeySend, chainKeyRecv;
+    uint           iMessSend, iMessRecv;
+    uint           prevChainLen;
+    std::vector<
+        std::pair<SkippedKeyNode, Buffer>
+    > skippedKeys;
+};
+
+class SignalProtocol {
 public:
     ProtocolCurve curve;
 
@@ -240,17 +261,15 @@ public:
             return false;
 
         } catch (InvalidPointException e) {
-                cout << "here" << endl;
             return false;
         } catch (DeserializeErrorException e) {
-                cout << "here" << endl;
             return false;
         }
         return false;
     }
 
-
-    PointMongomery calculateDHSharedSecret(Int ourPrivateKey, PointMongomery& theirPublicKey)
+    // -------------------- Key-exchange functions --------------------
+    PointMongomery calculateDHSharedSecret(Int ourPrivateKey, PointMongomery theirPublicKey)
     {
         if (ourPrivateKey == PRIVATE_KEY_NULL) {
             std::stringstream errorStream;
@@ -273,4 +292,23 @@ public:
     {
         return this->serialize(ourKey.identityKey.publicKey) + this->serialize(theirKey.identityKey.publicKey);
     }
+
+    // -------------------- Rachet functions -----------------------
+    void RachetInitAlice(RachetState* state, PointMongomery sharedKey, PointMongomery publicKeyBob)
+    {
+        state->DHSend       = this->generateKeyPair();
+        state->DHRecv       = publicKeyBob;
+        state->chainKeyRecv = Buffer();
+        state->iMessSend    = 0;
+        state->iMessRecv    = 0;
+        state->iMessRecv    = 0;
+        state->prevChainLen = 0;
+        state->skippedKeys  = {};
+    }
+
+    void RachetInitBob(RachetState* state, PointMongomery sharedKey, KeyPair keyPairBob)
+    {
+
+    }
+
 };
