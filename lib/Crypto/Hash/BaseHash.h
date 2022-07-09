@@ -22,12 +22,18 @@ public:
 
     inline string hexdigest()
     {
-        return this->digest().toHex();
+        std::stringstream errorStream;
+        errorStream << "[ ! ] Error! BaseHash.h: hexdigest() is not implemented." << std::endl;
+        throw NotImplementedException(errorStream.str());
+        return string();
     }
 
     inline Int intdigest(bool bigEndian=true)
     {
-        return this->digest().toInt(bigEndian);
+        std::stringstream errorStream;
+        errorStream << "[ ! ] Error! BaseHash.h: intdigest() is not implemented." << std::endl;
+        throw NotImplementedException(errorStream.str());
+        return Int();
     }
 
 

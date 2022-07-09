@@ -20,17 +20,49 @@ using namespace std;
 int main(int argc, char** argv)
 {
     try {
-        ProtocolCrypt crypt;
-        Buffer IV = urandom(16);
-        Buffer key = urandom(32);
-        Buffer message = Buffer("hello, this is to becrypted!");
-        Buffer ciphertext = crypt.encrypt(IV, key, message);
+        SignalProtocol proto;
+
+        /* ==================================================================================================
+                                                X3DH KEY EXCHANGE
+        ================================================================================================*/
+        x3DHPreKeyBundleA aliceKeyBundle;
+        x3DHPreKeyBundleB bobKeyBundle;
+
+        // >>> alice: [create key]
+        aliceKeyBundle.identityKey = proto.generateKeyPair(); 
+        aliceKeyBundle.ephemeralKey = proto.generateKeyPair(); 
+
+        // >>> bob: [create key]
+        bobKeyBundle.identityKey = proto.generateKeyPair();
+        bobKeyBundle.signedPreKey = proto.generateKeyPair();
+        bobKeyBundle.signature = proto.XEdDSA_sign(
+                                    bobKeyBundle.identityKey.privateKey, 
+                                    proto.serialize(bobKeyBundle.signedPreKey.publicKey)
+                                );
+        cout << "here" << endl;
+        bobKeyBundle.oneTimePreKey = proto.generateKeyPair();
         
-        crypt.decrypt(IV, key, ciphertext).__debug__();
-    } catch (CryptFailException e) {
+
+        // >>> alice -> bob: [her keys + onetime prekey she used]
+        // ...
+        // >>> alice: [calculate share secret]
+        Buffer sharedAlice = proto.calculateSharedSecret(aliceKeyBundle, bobKeyBundle); 
+        
+        // >>> bob: [calculate share secret]
+        Buffer sharedBob = proto.calculateSharedSecret(bobKeyBundle, aliceKeyBundle);
+
+        sharedAlice.__debug__();
+        sharedBob.__debug__();
+
+    }   
+    catch (NotImplementedException e) 
+    {
         cout << e.what() << endl;
     }
-    
+
+    /*  ==================================================================================================
+
+    ================================================================================================== */
 }
 // ----------------------------------------------------------------------------------------------------------/-
 
