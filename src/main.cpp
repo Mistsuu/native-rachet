@@ -19,17 +19,21 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-    SignalProtocol signalProto;
-
-    RachetState state;
-    KeyPair keyPair1 = signalProto.generateKeyPair();
-    KeyPair keyPair2 = signalProto.generateKeyPair();
-    signalProto.RachetInitAlice(
-        &state,
-        keyPair1.publicKey,
-        keyPair2.publicKey
-    );
-
+    try {
+        ProtocolCrypt crypt;
+        Buffer IV = urandom(16);
+        Buffer key = urandom(32);
+        Buffer message = Buffer("hello, this is to becrypted!");
+        Buffer ciphertext = crypt.encrypt(IV, key, message);
+        
+        IV.__debug__();
+        key.__debug__();
+        ciphertext.__debug__();
+        crypt.decrypt(IV, key, ciphertext).__debug__();
+    } catch (CryptFailException e) {
+        cout << e.what() << endl;
+    }
+    
 }
 // ----------------------------------------------------------------------------------------------------------/-
 

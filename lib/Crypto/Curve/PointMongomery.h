@@ -33,6 +33,16 @@ public:
         this->x = 0;
         this->z = 0;
     }
+
+    static PointMongomery nullPoint()
+    {
+        return PointMongomery(EMPTY_COORDINATE_MONGOMERY);
+    }
+
+    bool isNull()
+    {
+        return this->x == EMPTY_COORDINATE_MONGOMERY;
+    }
 };
 
 std::ostream& operator<<(std::ostream &os, PointMongomery const &P)

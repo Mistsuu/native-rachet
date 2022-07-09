@@ -16,6 +16,7 @@
 
 // --- POINT RELATED ---
 #define EMPTY_X_COORDINATE_EDWARDS           -1
+#define EMPTY_COORDINATE_MONGOMERY           -1
 
 // --- FOR PRIME CHECKING ---
 #define _PRIME_CHECK_THRESHOLD               40

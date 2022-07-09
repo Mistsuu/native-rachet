@@ -42,17 +42,33 @@ public:
     PointMongomery DHRecv;
     Buffer         rootKey;
     Buffer         chainKeySend, chainKeyRecv;
-    uint           iMessSend, iMessRecv;
-    uint           prevChainLen;
+    Int            iMessSend, iMessRecv;
+    Int            prevChainLen;
     std::vector<
         std::pair<SkippedKeyNode, Buffer>
     > skippedKeys;
+};
+
+class RachetHeader
+{
+public:
+    PointMongomery publicKey;
+    Int            prevChainLen;
+    Int            iMessSend;
+
+    RachetHeader(PointMongomery publicKey, Int prevChainLen, Int iMessSend)
+    {
+        this->publicKey = publicKey;
+        this->prevChainLen = prevChainLen;
+        this->iMessSend = iMessSend;
+    }
 };
 
 class SignalProtocol {
 public:
     ProtocolCurve curve;
 
+    // -------------------- KDF functions -----------------------
     Buffer HKDF(int length, Buffer inputKeyMaterial, Buffer salt, Buffer info)
     {
         ProtocolHMAC HMACObj;
@@ -77,10 +93,41 @@ public:
             32, 
             F + keyMaterial,
             Buffer(""),
-            KDF_INFO
+            KDF_INFO_SIGN
         );
     }
 
+    Buffer updateRootKey(Buffer* rootKey, Buffer sharedDHInput)
+    {
+        Buffer hashOutput = this->HKDF(
+            64, 
+            sharedDHInput,
+            *rootKey,
+            KDF_INFO_UPDATE_ROOTKEY
+        );
+
+        (*rootKey) = hashOutput[{32}];
+        return hashOutput[{-32}];
+    }
+
+    Buffer updateChainKey(Buffer* chainKey)
+    {
+        Buffer newMessageKey = ProtocolHMAC()
+                                .digest(
+                                    *chainKey, 
+                                    HMAC_INPUT_GET_MESSAGEKEY
+                                )[{32}];
+
+        (*chainKey) = ProtocolHMAC()
+                        .digest(
+                            *chainKey, 
+                            HMAC_INPUT_UPDATE_CHAINKEY
+                        )[{32}];
+
+        return newMessageKey;
+    }
+
+    // -------------------- Key generator -----------------------
     KeyPair generateKeyPair()
     {
         KeyPair newKeyPair;
@@ -128,6 +175,11 @@ public:
     inline Buffer serialize(Int num)
     {
         return Buffer::fromInt(num, curve.curveSizeBytes());
+    }
+
+    inline Buffer serialize(RachetHeader header)
+    {
+        return this->serialize(header.publicKey) + Buffer::fromInt(header.prevChainLen, 4) + Buffer::fromInt(header.iMessSend, 4);
     }
 
     inline PointEdwards deserializeEdwardPoint(Buffer edwardPointBuffer)
@@ -191,6 +243,22 @@ public:
         return intBuffer.toInt();
     }
 
+    inline RachetHeader deserializeRachetHeader(Buffer headerBuffer)
+    {
+        if (headerBuffer.len() != curve.curveSizeBytes() + 8) {
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Error! x3DH.h: deserializeMongomeryPoint(): Cannot deserialize the buffer! Wrong length! Got " << headerBuffer.len() << " instead of " << curve.curveSizeBytes() + 8 << "!" << std::endl;
+            errorStream << "[ ! ]     Buffer (in hex): " << headerBuffer.toHex() << std::endl;
+            throw DeserializeErrorException(errorStream.str());
+        }
+
+        return RachetHeader(
+            this->deserializeMongomeryPoint(headerBuffer[{(int)curve.curveSizeBytes()}]),
+            headerBuffer[{-8, -4}].toInt(),
+            headerBuffer[{    -4}].toInt()
+        );
+    }
+
 
     // -------------------- Hash functions --------------------
     inline Int hash(Buffer input)
@@ -235,7 +303,7 @@ public:
         return this->serialize(R) + this->serialize(s);
     }
 
-    bool XEdDSA_verify(Buffer serializedMongomeryPublicKey, Buffer message, Buffer signature)
+    bool XEdDSA_verify(Buffer mongomeryPublicKey, Buffer message, Buffer signature)
     {
         try {
             // Throw exception here.
@@ -247,7 +315,7 @@ public:
             }
 
             // Verify part.
-            PointMongomery U                  = this->deserializeMongomeryPoint(serializedMongomeryPublicKey);
+            PointMongomery U                  = this->deserializeMongomeryPoint(mongomeryPublicKey);
             Buffer         Rserialize         = signature[{(int)curve.curveSizeBytes()}];
             PointEdwards   R                  = this->deserializeEdwardPoint(Rserialize);
             Int            s                  = this->deserializeInt(signature[{-(int)curve.curveSizeBytes()}]);
@@ -266,6 +334,13 @@ public:
             return false;
         }
         return false;
+    }
+
+
+    // --------------------- Encryption!! --------------------------
+    Buffer innerEncrypt(Buffer messageKey, Buffer plaintext, Buffer associatedData)
+    {
+        
     }
 
     // -------------------- Key-exchange functions --------------------
@@ -293,22 +368,45 @@ public:
         return this->serialize(ourKey.identityKey.publicKey) + this->serialize(theirKey.identityKey.publicKey);
     }
 
-    // -------------------- Rachet functions -----------------------
-    void RachetInitAlice(RachetState* state, PointMongomery sharedKey, PointMongomery publicKeyBob)
+
+    // -------------------- Rachet-encryption functions -----------------------
+    void RachetInitAlice(RachetState* state, Buffer sharedSecret, PointMongomery bobPublicKey)
     {
         state->DHSend       = this->generateKeyPair();
-        state->DHRecv       = publicKeyBob;
-        state->chainKeyRecv = Buffer();
+        state->DHRecv       = bobPublicKey;
+        state->rootKey      = sharedSecret;
+        state->chainKeyRecv = Buffer("");
         state->iMessSend    = 0;
-        state->iMessRecv    = 0;
         state->iMessRecv    = 0;
         state->prevChainLen = 0;
         state->skippedKeys  = {};
+        state->chainKeySend = this->updateRootKey(
+                                &state->rootKey, 
+                                this->serialize(this->calculateDHSharedSecret(state->DHSend.privateKey, state->DHRecv))
+                              );
     }
 
-    void RachetInitBob(RachetState* state, PointMongomery sharedKey, KeyPair keyPairBob)
+    void RachetInitBob(RachetState* state, Buffer sharedSecret, KeyPair bobKeyPair)
     {
-
+        state->DHSend       = bobKeyPair;
+        state->DHRecv       = PointMongomery::nullPoint();
+        state->rootKey      = sharedSecret;
+        state->chainKeySend = Buffer(""); 
+        state->chainKeyRecv = Buffer("");
+        state->iMessSend    = 0; 
+        state->iMessRecv    = 0; 
+        state->prevChainLen = 0;
+        state->skippedKeys  = {}; 
     }
 
+    RachetHeader RachetEncrypt(RachetState* state, Buffer plaintext, Buffer associatedData, Buffer* ciphertext)
+    {
+        Buffer messageKey = this->updateChainKey(&state->chainKeySend);
+        RachetHeader header = RachetHeader(state->DHSend.publicKey, state->prevChainLen, state->iMessSend);
+        
+        state->iMessSend += 1;
+        (*ciphertext) = this->innerEncrypt(messageKey, plaintext, associatedData + this->serialize(header));
+        
+        return header;
+    }
 };

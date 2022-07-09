@@ -8,6 +8,7 @@
 #include <cstring>
 #include <iomanip>
 #include <openssl/sha.h>
+#include <openssl/aes.h>
 #include <gmp.h>
 #include <vector>
 #include <utility>

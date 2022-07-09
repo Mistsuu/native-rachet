@@ -100,3 +100,14 @@ public:
         return message;
     }
 };
+
+class CryptFailException : public std::exception 
+{
+private:
+    std::string message;
+public:
+    CryptFailException(std::string exceptionMessage) : message(exceptionMessage) {}
+    std::string what() {
+        return message;
+    }
+};

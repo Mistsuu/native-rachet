@@ -46,17 +46,7 @@ public:
         SHA256_Final(digest.data(), &this->context);
         return digest;
     }
-
-    inline string hexdigest()
-    {
-        return this->digest().toHex();
-    }
-
-    inline Int intdigest(bool bigEndian=true)
-    {
-        return this->digest().toInt(bigEndian);
-    }
-
+    
 
     inline void update(Buffer input)
     {

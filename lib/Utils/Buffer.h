@@ -124,6 +124,7 @@ public:
         this->head       = (u_char*)malloc(1);
         this->size       = 1;
         this->actualSize = 1;
+        this->set(chr);
     }
 
 
