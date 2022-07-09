@@ -388,7 +388,7 @@ public:
             errorStream << "[ ! ]     theirAssocData   (in hex): " << theirAssocData.toHex() << std::endl;
             errorStream << "[ ! ]     ourAuthData      (in hex): " << ourAuthData.toHex() << std::endl;
             errorStream << "[ ! ]     theirAuthData    (in hex): " << theirAuthData.toHex() << std::endl;
-            throw DeserializeErrorException(errorStream.str());
+            throw CryptFailException(errorStream.str());
         }
 
         ciphertext = ciphertext[{ (int)theirAssocData.len(), -(int)ourAuthData.len() }];
@@ -466,6 +466,13 @@ public:
                       );
             state->iMessSend += 1;
             return this->innerEncrypt(messageKey, plaintext, associatedData + this->serialize(*header));
+        } 
+        
+        else {
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Error! SignalProtocol.h: rachetEncrypt(): NULL pointers state & header detected!" << std::endl;
+            throw CryptFailException(errorStream.str());
+            return Buffer();
         }
     }
 
@@ -495,7 +502,7 @@ public:
             std::stringstream errorStream;
             errorStream << "[ ! ] Error! SignalProtocol.h: trySkipMessageKeys(): iMess overflow! Got " << iMess << "! The upper index is " << state->iMessRecv + MAX_SKIP_MESSAGE_KEYS << "." << std::endl;
             errorStream << "[ ! ]     iMess: " << iMess << std::endl;
-            throw KeyErrorException(errorStream.str());
+            throw CryptFailException(errorStream.str());
         }
 
         if (state->chainKeyRecv.len() != 0) {
@@ -526,21 +533,30 @@ public:
 
     Buffer rachetDecrypt(RachetState* state, RachetHeader header, Buffer ciphertext, Buffer associatedData)
     {
-        bool   success   = false;
-        Buffer plaintext = this->tryDecryptBySkippedKeys(state, header, ciphertext, associatedData, &success);
-        if (success)
-            return plaintext;
+        if (state) {
+            bool success = false;
+            Buffer plaintext = this->tryDecryptBySkippedKeys(state, header, ciphertext, associatedData, &success);
+            if (success)
+                return plaintext;
 
-        if (!curve.comparePoint(header.publicKey, state->DHRecv)) {
-            this->trySkipMessageKeys(state, header.prevChainLen);
-            this->dhRachet(state, header);
+            if (!curve.comparePoint(header.publicKey, state->DHRecv)) {
+                this->trySkipMessageKeys(state, header.prevChainLen);
+                this->dhRachet(state, header);
+            }
+
+            this->trySkipMessageKeys(state, header.iMess);
+            Buffer messageKey = this->updateChainKey(&state->chainKeyRecv);
+            state->iMessRecv++;
+
+            return this->innerDecrypt(messageKey, ciphertext, associatedData + this->serialize(header));
+        } 
+        
+        else {
+            std::stringstream errorStream;
+            errorStream << "[ ! ] Error! SignalProtocol.h: rachetEncrypt(): NULL pointers state detected!" << std::endl;
+            throw CryptFailException(errorStream.str());
+            return Buffer();
         }
-
-        this->trySkipMessageKeys(state, header.iMess);
-        Buffer messageKey = this->updateChainKey(&state->chainKeyRecv);
-        state->iMessRecv++;
-
-        return this->innerDecrypt(messageKey, ciphertext, associatedData + this->serialize(header));
     }
 
     
