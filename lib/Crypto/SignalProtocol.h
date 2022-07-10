@@ -589,7 +589,7 @@ public:
             *state = _state;
             return plaintext;
         } catch (std::exception e) {
-            return ciphertext;
+            return Buffer();
         }
     }
 };
