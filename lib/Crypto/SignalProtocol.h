@@ -336,9 +336,9 @@ public:
                 return true;
             return false;
 
-        } catch (InvalidPointException e) {
+        } catch (InvalidPointException& e) {
             return false;
-        } catch (DeserializeErrorException e) {
+        } catch (DeserializeErrorException& e) {
             return false;
         }
         return false;
@@ -575,7 +575,7 @@ public:
     {
         try {
             return this->rachetEncrypt(state, header, plaintext, associatedData);
-        } catch (std::exception e) {
+        } catch (std::exception& e) {
             return Buffer();
         }
     } 
@@ -588,7 +588,7 @@ public:
             Buffer plaintext = this->rachetDecrypt(&_state, header, ciphertext, associatedData);
             *state = _state;
             return plaintext;
-        } catch (std::exception e) {
+        } catch (std::exception& e) {
             return Buffer();
         }
     }
