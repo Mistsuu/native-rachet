@@ -1,5 +1,15 @@
+# Workspace folder
 .vscode
+
+# Some tools
 runcpp
+
+# Compilied objects
 obj
+
+# Binaries
 main
+proto-proof
+
+# Valgrind memory profiler
 massif.*
