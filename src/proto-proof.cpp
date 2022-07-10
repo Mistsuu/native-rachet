@@ -85,17 +85,21 @@ int main(int argc, char** argv)
 
         // >>> bob: [decrypt message from alice]
         Buffer bobDecryptMessage;
-        // bobDecryptMessage = proto.signalDecrypt(&bobRachetState, aliceHeader, aliceMessage, bobAssocData);
-        // bobDecryptMessage.__debug__();
-        // cout << bobRachetState.skippedKeys.size() << endl;
+        bobDecryptMessage = proto.signalDecrypt(&bobRachetState, aliceHeader, aliceMessage, bobAssocData);
+        bobDecryptMessage.__debug__();
+        cout << bobRachetState.skippedKeys.size() << endl;
 
-        // bobDecryptMessage = proto.signalDecrypt(&bobRachetState, randomHeader, aliceMessageRandom, bobAssocData);
-        // bobDecryptMessage.__debug__();
-        // cout << bobRachetState.skippedKeys.size() << endl;
+        bobDecryptMessage = proto.signalDecrypt(&bobRachetState, randomHeader, aliceMessageRandom, bobAssocData);
+        bobDecryptMessage.__debug__();
+        cout << bobRachetState.skippedKeys.size() << endl;
 
         bobDecryptMessage = proto.signalDecrypt(&bobRachetState, randomHeader2, aliceMessageRandom2, bobAssocData);
-        // bobDecryptMessage.__debug__();
-        // cout << bobRachetState.skippedKeys.size() << endl;
+        bobDecryptMessage.__debug__();
+        cout << bobRachetState.skippedKeys.size() << endl;
+
+        bobDecryptMessage = proto.signalDecrypt(&bobRachetState, randomHeader2, aliceMessageRandom2, bobAssocData);
+        bobDecryptMessage.__debug__();
+        cout << bobRachetState.skippedKeys.size() << endl;
 
     }   
     catch (NotImplementedException e) 
