@@ -13,3 +13,6 @@ proto-proof
 
 # Valgrind memory profiler
 massif.*
+
+# Debug file
+.gdb_history
