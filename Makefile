@@ -32,6 +32,9 @@ clean:
 run: main
 	./main
 
+test: proto-proof
+	./proto-proof
+
 dbg: main
 	gdb-pwndbg ./main
 
