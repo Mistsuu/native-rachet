@@ -18,14 +18,16 @@ $(OBJECT_DIR):
 $(OBJECT_DIR)/%.o: $(SOURCE_DIR)/%.cpp $(FULLDEPS) | $(OBJECT_DIR)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-main: $(FULLOBJS)
+main: $(OBJECT_DIR)/main.o
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
+proto-proof: $(OBJECT_DIR)/proto-proof.o
+	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
 # For commands
 .PHONY: clean run dbg gdb
 clean:
-	rm -f $(SOURCE_DIR)/*.o $(OBJECT_DIR)/*.o ./main
+	rm -f $(SOURCE_DIR)/*.o $(OBJECT_DIR)/*.o ./main ./proto-proof
 
 run: main
 	./main

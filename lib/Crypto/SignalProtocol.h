@@ -466,7 +466,7 @@ public:
         }
     }
 
-    Buffer rachetEncrypt(RachetState* state, Buffer plaintext, Buffer associatedData, RachetHeader* header)
+    Buffer rachetEncrypt(RachetState* state, RachetHeader* header, Buffer plaintext, Buffer associatedData)
     {
         if (state && header) {
             Buffer messageKey = this->updateChainKey(&state->chainKeySend);
@@ -570,4 +570,26 @@ public:
         }
     }
 
+    // ------------------- Signal-wrapped crypto functions ---------------------
+    Buffer signalEncrypt(RachetState* state, RachetHeader* header, Buffer plaintext, Buffer associatedData)
+    {
+        try {
+            return this->rachetEncrypt(state, header, plaintext, associatedData);
+        } catch (std::exception e) {
+            return Buffer();
+        }
+    } 
+
+    Buffer signalDecrypt(RachetState* state, RachetHeader header, Buffer ciphertext, Buffer associatedData)
+    {
+        try {
+            // Try duplicate state, then update it if protocol is successful.
+            RachetState _state = *state;
+            Buffer plaintext = this->rachetDecrypt(&_state, header, ciphertext, associatedData);
+            *state = _state;
+            return plaintext;
+        } catch (std::exception e) {
+            return ciphertext;
+        }
+    }
 };
