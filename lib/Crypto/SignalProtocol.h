@@ -489,7 +489,7 @@ public:
 
     Buffer tryDecryptBySkippedKeys(RachetState* state, RachetHeader header, Buffer ciphertext, Buffer associatedData, bool* success)
     {
-        for (int i = 0; i < state->skippedKeys.size(); ++i) {
+        for (int i = 0; i < (int)state->skippedKeys.size(); ++i) {
             SkippedKeyNode node = SkippedKeyNode(
                 state->skippedKeys[i].first.DHPublic,
                 state->skippedKeys[i].first.iMess                

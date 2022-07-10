@@ -47,12 +47,12 @@ public:
         cout << "------------------- < debug buffer> -----------------------" << std::endl;
         if (this->head) {
             cout << "[ i ] Data (0->size):       ";
-            for (int i = 0; i < this->size; ++i) 
+            for (int i = 0; i < (int)this->size; ++i) 
                 cout << setw(2) << setfill('0') << hex << (int)this->head[i];
             cout << std::endl;
 
             cout << "[ i ] Data (0->actualSize): ";
-            for (int i = 0; i < this->actualSize; ++i) 
+            for (int i = 0; i < (int)this->actualSize; ++i) 
                 cout << setw(2) << setfill('0') << hex << (int)this->head[i];
             cout << std::endl;
         }
@@ -501,7 +501,7 @@ public:
         }
 
         Buffer newBuffer(this->size);
-        for (int i = 0; i < this->size; ++i)
+        for (int i = 0; i < (int)this->size; ++i)
             newBuffer.head[i] = this->head[i] ^ buf.head[i];
         return newBuffer;
     }
@@ -515,7 +515,7 @@ public:
         }
 
         Buffer newBuffer(this->size);
-        for (int i = 0; i < this->size; ++i)
+        for (int i = 0; i < (int)this->size; ++i)
             newBuffer.head[i] = this->head[i] ^ str.c_str()[i];
         return newBuffer;
     }
@@ -541,7 +541,7 @@ public:
             throw BufferErrorException(errorStream.str());
         }
 
-        for (int i = 0; i < this->size; ++i)
+        for (int i = 0; i < (int)this->size; ++i)
             this->head[i] ^= buf.head[i];
     }
 
@@ -553,7 +553,7 @@ public:
             throw BufferErrorException(errorStream.str());
         }
 
-        for (int i = 0; i < this->size; ++i)
+        for (int i = 0; i < (int)this->size; ++i)
             this->head[i] ^= str[i];
     }
 
@@ -596,7 +596,6 @@ public:
     */
     inline Buffer operator[] (std::initializer_list<int> range)
     {
-        int  index;
         int  lIndex;
         int  rIndex;
         int  step;
@@ -684,7 +683,7 @@ public:
         static const char* hexDigits = "0123456789abcdef";
         int    byte;
         string hexResult;
-        for (int i = 0; i < this->size; ++i) {
+        for (int i = 0; i < (int)this->size; ++i) {
             byte       = (int)this->head[i];
             hexResult += hexDigits[byte >>   4];
             hexResult += hexDigits[byte &  0xf];
@@ -798,7 +797,7 @@ std::ostream& operator<<(std::ostream &os, Buffer buf)
 {
     u_char* buf_ptr = buf.data();
     uint    buf_len = buf.len();
-    for (int i = 0; i < buf_len; ++i)
+    for (int i = 0; i < (int)buf_len; ++i)
         os << buf_ptr[i];
     return os;
 }
@@ -978,7 +977,7 @@ Buffer operator^ (string const &str, Buffer buf)
     }
 
     Buffer newBuffer;
-    for (int i = 0; i < buf.len(); ++i)
+    for (int i = 0; i < (int)buf.len(); ++i)
         newBuffer[i] = str[i] ^ buf[i];
     return newBuffer;
 }
