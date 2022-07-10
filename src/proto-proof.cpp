@@ -96,7 +96,7 @@ int main(int argc, char** argv)
     bobDecryptMessage.__debug__();
     cout << bobRachetState.skippedKeys.size() << endl;
 
-    bobDecryptMessage = proto.rachetDecrypt(&bobRachetState, randomHeader2, aliceMessageRandom2, bobAssocData);
+    bobDecryptMessage = proto.signalDecrypt(&bobRachetState, randomHeader2, aliceMessageRandom2, bobAssocData);
     bobDecryptMessage.__debug__();
     cout << bobRachetState.skippedKeys.size() << endl;
 
