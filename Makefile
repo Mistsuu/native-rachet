@@ -18,9 +18,6 @@ $(OBJECT_DIR):
 $(OBJECT_DIR)/%.o: $(SOURCE_DIR)/%.cpp $(FULLDEPS) | $(OBJECT_DIR)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-main: $(OBJECT_DIR)/main.o
-	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
-
 proto-proof: $(OBJECT_DIR)/proto-proof.o
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
@@ -29,14 +26,11 @@ proto-proof: $(OBJECT_DIR)/proto-proof.o
 clean:
 	rm -f $(SOURCE_DIR)/*.o $(OBJECT_DIR)/*.o ./main ./proto-proof
 
-run: main
-	./main
-
 test: proto-proof
 	./proto-proof
 
-dbg: main
-	gdb-pwndbg ./main
+dbg-test: proto-proof
+	gdb-pwndbg ./proto-proof
 
-gdb: main
-	gdb ./main
+gdb-test: proto-proof
+	gdb ./proto-proof
