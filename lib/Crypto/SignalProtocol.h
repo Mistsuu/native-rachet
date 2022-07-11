@@ -6,7 +6,9 @@
 
 class x3DHPreKeyBundle
 {
+public:
     KeyPair identityKey;                                 // Random key, generate one time.
+    KeyPair ephemeralKey;                                // Random key, generate each protocol run.
     KeyPair signedPreKey;                                // Random key, generate one time.
     Buffer  signature;                                   // Generated from identity key and signedPreKey.
     KeyPair oneTimePreKeys[ONETIME_PREKEYS_BATCH_SIZE];  // Random key, use one time, generate if none.
@@ -144,6 +146,20 @@ public:
         return newKeyPair;
     }
 
+    x3DHPreKeyBundle generatePreKeyBundle()
+    {
+        x3DHPreKeyBundle preKeyBundle;
+        preKeyBundle.identityKey  = this->generateKeyPair();
+        preKeyBundle.ephemeralKey = this->generateKeyPair();
+        preKeyBundle.signedPreKey = this->generateKeyPair();
+        preKeyBundle.signature    = this->XEdDSA_sign(
+                                        preKeyBundle.identityKey.privateKey,
+                                        this->serialize(preKeyBundle.signedPreKey.publicKey)
+                                    );
+        for (int i = 0; i < ONETIME_PREKEYS_BATCH_SIZE; ++i)
+            preKeyBundle.oneTimePreKeys[i] = this->generateKeyPair();
+        return preKeyBundle;
+    }
 
     // -------------------- Serialize data ----------------------
     inline Buffer serialize(PointEdwards P)
