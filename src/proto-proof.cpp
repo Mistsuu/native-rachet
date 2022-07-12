@@ -53,11 +53,11 @@ int main(int argc, char** argv)
 
     // >>> alice: [init rachet]
     proto.rachetInitAlice(&aliceRachetState, sharedAlice, bobKeyBundle.signedPreKey.publicKey);
-    Buffer aliceAssocData = proto.calculateAssociatedData(aliceKeyBundle, bobKeyBundle);
+    Buffer aliceAssocData = proto.calculateAssociatedData(aliceKeyBundle.identityKey, bobKeyBundle.identityKey);
 
     // >>> bob: [init rachet]
     proto.rachetInitBob(&bobRachetState, sharedBob, bobKeyBundle.signedPreKey);
-    Buffer bobAssocData = proto.calculateAssociatedData(aliceKeyBundle, bobKeyBundle);
+    Buffer bobAssocData = proto.calculateAssociatedData(aliceKeyBundle.identityKey, bobKeyBundle.identityKey);
 
     /*  ==================================================================================================
                                             SEND FIRST MESSAGES

@@ -252,16 +252,15 @@ public:
     {
         Napi::Env env = info.Env();
         if (info.Length() >= 2 && info[0].IsObject() && info[1].IsObject()) {
-            Napi::Object NAliceKeyBundle = info[0].ToObject();
-            Napi::Object NBobKeyBundle   = info[1].ToObject();
+            Napi::Object NAliceIdentityKey = info[0].ToObject();
+            Napi::Object NBobIdentityKey   = info[1].ToObject();
 
-            x3DHPreKeyBundleA aliceKeyBundle;
-            x3DHPreKeyBundleB bobKeyBundle;
-
-            if (this->parsePreKeyBundleA(env, NAliceKeyBundle, aliceKeyBundle)
-             && this->parsePreKeyBundleB(env, NBobKeyBundle, bobKeyBundle))
+            KeyPair aliceIdentityKey;
+            KeyPair bobIdentityKey;
+            if (this->parseKeyPair(env, NAliceIdentityKey, aliceIdentityKey)
+             && this->parseKeyPair(env, NBobIdentityKey, bobIdentityKey))
             {
-                Buffer associatedData = this->proto.calculateAssociatedData(aliceKeyBundle, bobKeyBundle);
+                Buffer associatedData = this->proto.calculateAssociatedData(aliceIdentityKey, bobIdentityKey);
                 return Napi::Buffer<u_char>::Copy(
                     env,
                     associatedData.data(),
@@ -271,17 +270,14 @@ public:
         }      
 
         throw Napi::TypeError::New(env, 
-            "Argument supply should be: (Object aliceKeyBundle, Object bobKeyBundle)\n"
+            "Argument supply should be: (Object aliceIdentityKey, Object bobIdentityKey)\n"
             "where:\n"
             "\n"                 
-            "Object [aliceKeyBundle] contains:\n"
-            "   - " IDENTITY_KEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
-            "   - " EPHEMERAL_KEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"
+            "Object [aliceIdentityKey] is:\n"
+            "   @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
             "\n"                 
-            "Object [bobKeyBundle] contains:\n"
-            "   - " IDENTITY_KEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
-            "   - " SIGNED_PREKEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
-            "   - " ONETIME_PREKEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
+            "Object [bobIdentityKey] is:\n"
+            "   @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
         );    
     }
 

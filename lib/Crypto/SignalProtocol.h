@@ -417,9 +417,9 @@ public:
         return KDF((DH1 + DH2) + (DH3 + DH4));
     }
 
-    Buffer calculateAssociatedData(x3DHPreKeyBundleA keyAlice, x3DHPreKeyBundleB keyBob)
+    Buffer calculateAssociatedData(KeyPair keyAlice, KeyPair keyBob)
     {
-        return this->serialize(keyAlice.identityKey.publicKey) + this->serialize(keyBob.identityKey.publicKey);
+        return this->serialize(keyAlice.publicKey) + this->serialize(keyBob.publicKey);
     }
 
 
