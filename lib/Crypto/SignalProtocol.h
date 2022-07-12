@@ -25,26 +25,26 @@ class SkippedKeyNode
 public:
     PointMongomery DHPublic;
     Int            iMess;
+    Buffer         messageKey;
 
-    SkippedKeyNode(PointMongomery DHPublic, Int iMess) 
+    SkippedKeyNode(PointMongomery DHPublic, Int iMess, Buffer messageKey) 
     {
-        this->DHPublic = DHPublic;
-        this->iMess = iMess;
+        this->DHPublic   = DHPublic;
+        this->iMess      = iMess;
+        this->messageKey = messageKey;
     }
 };
 
 class RachetState
 {
 public:
-    KeyPair        DHSend;
-    PointMongomery DHRecv;
-    Buffer         rootKey;
-    Buffer         chainKeySend, chainKeyRecv;
-    Int            iMessSend, iMessRecv;
-    Int            prevChainLen;
-    std::vector<
-        std::pair<SkippedKeyNode, Buffer>
-    > skippedKeys;
+    KeyPair                     DHSend;
+    PointMongomery              DHRecv;
+    Buffer                      rootKey;
+    Buffer                      chainKeySend, chainKeyRecv;
+    Int                         iMessSend, iMessRecv;
+    Int                         prevChainLen;
+    std::vector<SkippedKeyNode> skippedKeys;
 };
 
 class RachetHeader
@@ -481,16 +481,16 @@ public:
     Buffer tryDecryptBySkippedKeys(RachetState* state, RachetHeader header, Buffer ciphertext, Buffer associatedData, bool* success)
     {
         for (int i = 0; i < (int)state->skippedKeys.size(); ++i) {
-            SkippedKeyNode node = SkippedKeyNode(
-                state->skippedKeys[i].first.DHPublic,
-                state->skippedKeys[i].first.iMess                
-            );
+            if (curve.comparePoint(state->skippedKeys[i].DHPublic, state->DHRecv) && state->skippedKeys[i].iMess == header.iMess) {
+                Buffer plaintext = this->innerDecrypt(
+                                            state->skippedKeys[i].messageKey, 
+                                            ciphertext, 
+                                            associatedData + this->serialize(header)
+                                        );
 
-            if (curve.comparePoint(node.DHPublic, state->DHRecv) && node.iMess == header.iMess) {
-                Buffer messageKey = state->skippedKeys[i].second; 
                 state->skippedKeys.erase(state->skippedKeys.begin() + i);
                 *success = true;
-                return this->innerDecrypt(messageKey, ciphertext, associatedData + this->serialize(header));
+                return plaintext;
             }
         }
 
@@ -512,10 +512,11 @@ public:
             while (state->iMessRecv < iMess) {
                 messageKey = this->updateChainKey(&state->chainKeyRecv);
                 state->skippedKeys.push_back(
-                                      std::make_pair(
-                                        SkippedKeyNode(state->DHRecv, state->iMessRecv),
-                                        messageKey
-                                      )
+                                        SkippedKeyNode(
+                                            state->DHRecv, 
+                                            state->iMessRecv,
+                                            messageKey
+                                        )
                                    );
                 state->iMessRecv++;
             }

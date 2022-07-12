@@ -47,72 +47,6 @@ public:
     {
     }
 
-    Napi::Value GenerateKeyPair(const Napi::CallbackInfo& info)
-    {
-        Napi::Env env = info.Env();
-
-        KeyPair keyPair = this->proto.generateKeyPair();
-        Buffer serializedPublicKey = this->proto.serialize(keyPair.publicKey);
-        Buffer serializedPrivateKey = this->proto.serialize(keyPair.privateKey);
-
-        Napi::Object NKeyPairObj = Napi::Object::New(env);
-        NKeyPairObj.Set(Napi::String::New(env, PUBLIC_KEY_STR), Napi::Buffer<u_char>::Copy(env, serializedPublicKey.data(), serializedPublicKey.len()));
-        NKeyPairObj.Set(Napi::String::New(env, PRIVATE_KEY_STR), Napi::Buffer<u_char>::Copy(env, serializedPrivateKey.data(), serializedPrivateKey.len()));
-        return NKeyPairObj;
-    }
-
-    Napi::Value CalculateSignature(const Napi::CallbackInfo& info)
-    {
-        Napi::Env env = info.Env();
-
-        if (info.Length() < 2)
-            throw Napi::TypeError::New(env, "Argument supply should be: (Buffer privateKey, Buffer input)");
-
-        if (info[0].IsBuffer() && info[1].IsBuffer()) {
-            Napi::Buffer<u_char> NPrivateKey = info[0].As<Napi::Buffer<u_char>>();
-            Napi::Buffer<u_char> NInput      = info[1].As<Napi::Buffer<u_char>>();
-
-            Buffer serializedPrivateKey((char*)NPrivateKey.Data(), NPrivateKey.Length());
-            Buffer input               ((char*)NInput.Data(),      NInput.Length());
-            Buffer signature = this->proto.XEdDSA_sign(
-                                this->proto.deserializeInt(serializedPrivateKey),
-                                input
-                               );
-                               
-            return Napi::Buffer<u_char>::Copy(
-                    env,
-                    signature.data(),
-                    signature.len()
-                   );
-        }
-
-        throw Napi::TypeError::New(env, "Argument supply should be: (Buffer privateKey, Buffer input)");
-    }
-
-    Napi::Value VerifySignature(const Napi::CallbackInfo& info)
-    {
-        Napi::Env env = info.Env();
-
-        if (info.Length() < 3)
-            throw Napi::TypeError::New(env, "Argument supply should be: (Buffer publicKey, Buffer input, Buffer signature)");
-
-        if (info[0].IsBuffer() && info[1].IsBuffer() && info[2].IsBuffer()) {
-            Napi::Buffer<u_char> NPublicKey = info[0].As<Napi::Buffer<u_char>>();
-            Napi::Buffer<u_char> NInput     = info[1].As<Napi::Buffer<u_char>>();
-            Napi::Buffer<u_char> NSignature = info[2].As<Napi::Buffer<u_char>>();
-
-            Buffer publicKey((char*)NPublicKey.Data(), NPublicKey.Length());
-            Buffer input    ((char*)NInput.Data(), NInput.Length());
-            Buffer signature((char*)NSignature.Data(), NSignature.Length());
-
-            return Napi::Boolean::New(
-                    env,
-                    this->proto.XEdDSA_verify(publicKey, input, signature)
-                   );
-        }
-
-        throw Napi::TypeError::New(env, "Argument supply should be: (Buffer publicKey, Buffer input, Buffer signature)");
-    }
 
     bool parseKeyPair(Napi::Env& env, Napi::Object NKeyPair, KeyPair& keyPair)
     {
@@ -170,6 +104,86 @@ public:
             return true;
         }
         return false;
+    }
+
+
+    Napi::Object ToNapiObject(Napi::Env& env, KeyPair& keyPair)
+    {
+        Buffer serializedPublicKey = this->proto.serialize(keyPair.publicKey);
+        Buffer serializedPrivateKey = this->proto.serialize(keyPair.privateKey);
+
+        Napi::Object NKeyPairObj = Napi::Object::New(env);
+        NKeyPairObj.Set(Napi::String::New(env, PUBLIC_KEY_STR), Napi::Buffer<u_char>::Copy(env, serializedPublicKey.data(), serializedPublicKey.len()));
+        NKeyPairObj.Set(Napi::String::New(env, PRIVATE_KEY_STR), Napi::Buffer<u_char>::Copy(env, serializedPrivateKey.data(), serializedPrivateKey.len()));
+        return NKeyPairObj;
+    }
+
+    Napi::Object ToNapiObject(Napi::Env& env, RachetState& state)
+    {
+        Napi::Object NRachetStateObj = Napi::Object::New(env);
+        NRachetStateObj.Set(Napi::String::New(env, ))
+        return NRachetStateObj;
+    }
+
+    
+    Napi::Value GenerateKeyPair(const Napi::CallbackInfo& info)
+    {
+        Napi::Env env = info.Env();
+        KeyPair keyPair = this->proto.generateKeyPair();
+        return this->ToNapiObject(env, keyPair);
+    }
+
+    Napi::Value CalculateSignature(const Napi::CallbackInfo& info)
+    {
+        Napi::Env env = info.Env();
+
+        if (info.Length() < 2)
+            throw Napi::TypeError::New(env, "Argument supply should be: (Buffer privateKey, Buffer input)");
+
+        if (info[0].IsBuffer() && info[1].IsBuffer()) {
+            Napi::Buffer<u_char> NPrivateKey = info[0].As<Napi::Buffer<u_char>>();
+            Napi::Buffer<u_char> NInput      = info[1].As<Napi::Buffer<u_char>>();
+
+            Buffer serializedPrivateKey((char*)NPrivateKey.Data(), NPrivateKey.Length());
+            Buffer input               ((char*)NInput.Data(),      NInput.Length());
+            Buffer signature = this->proto.XEdDSA_sign(
+                                this->proto.deserializeInt(serializedPrivateKey),
+                                input
+                               );
+                               
+            return Napi::Buffer<u_char>::Copy(
+                    env,
+                    signature.data(),
+                    signature.len()
+                   );
+        }
+
+        throw Napi::TypeError::New(env, "Argument supply should be: (Buffer privateKey, Buffer input)");
+    }
+
+    Napi::Value VerifySignature(const Napi::CallbackInfo& info)
+    {
+        Napi::Env env = info.Env();
+
+        if (info.Length() < 3)
+            throw Napi::TypeError::New(env, "Argument supply should be: (Buffer publicKey, Buffer input, Buffer signature)");
+
+        if (info[0].IsBuffer() && info[1].IsBuffer() && info[2].IsBuffer()) {
+            Napi::Buffer<u_char> NPublicKey = info[0].As<Napi::Buffer<u_char>>();
+            Napi::Buffer<u_char> NInput     = info[1].As<Napi::Buffer<u_char>>();
+            Napi::Buffer<u_char> NSignature = info[2].As<Napi::Buffer<u_char>>();
+
+            Buffer publicKey((char*)NPublicKey.Data(), NPublicKey.Length());
+            Buffer input    ((char*)NInput.Data(), NInput.Length());
+            Buffer signature((char*)NSignature.Data(), NSignature.Length());
+
+            return Napi::Boolean::New(
+                    env,
+                    this->proto.XEdDSA_verify(publicKey, input, signature)
+                   );
+        }
+
+        throw Napi::TypeError::New(env, "Argument supply should be: (Buffer publicKey, Buffer input, Buffer signature)");
     }
 
     Napi::Value CalculateSharedSecretA(const Napi::CallbackInfo& info)
@@ -283,8 +297,29 @@ public:
 
     Napi::Value RachetInitAlice(const Napi::CallbackInfo& info)
     {
-        RachetState state;
+        Napi::Env env = info.Env();
+        if (info.Length() >= 2 && info[0].IsBuffer() && info[1].IsObject()) {
+            Napi::Buffer<u_char> NSharedSecret = info[0].As<Buffer<u_char>>();
+            Napi::Object         NBobKeyPair   = info[1].ToObject();
 
+            // Parse key pair            
+            KeyPair bobKeyPair;
+            this->parseKeyPair(env, NBobKeyPair, bobKeyPair);
+            // Parse buffer
+            Buffer sharedSecret(NSharedSecret.Data(), NSharedSecret.Length());
+            // Return state
+            RachetState state;
+            this->proto.rachetInitAlice(&state, sharedSecret, bobKeyPair.publicKey);
+            return this->ToNapiObject(env, state);
+        }
+        
+        throw Napi::TypeError::New(env, 
+            "Argument supply should be: (Buffer sharedSecret, Object bobKeyPair)\n"
+            "where:\n"
+            "\n"                 
+            "Object [bobKeyPair] is:\n"
+            "   @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
+        );    
     }
 
     Napi::Value RachetInitBob(const Napi::CallbackInfo& info)
