@@ -6,12 +6,15 @@
 #define SIGNATURE_STR "signature"
 #define SIGNED_PREKEY_STR "signedPreKey"
 #define ONETIME_PREKEY_STR "oneTimePreKey"
-#define DHSEND_STR
-#define DHRECV_STR
-#define ROOTKEY_STR
-#define CHAINKEYRECV_STR
-#define IMESSSEND_STR
-#define IMESSRECV_STR
-#define PREVCHAINLEN_STR
-#define SKIPPEDKEYS_STR
-#define CHAINKEYSEND_STR
+#define DHSEND_STR "DHSend"
+#define DHRECV_STR "DHRecv"
+#define ROOTKEY_STR "rootKey"
+#define CHAINKEYSEND_STR "chainKeySend"
+#define CHAINKEYRECV_STR "chainKeyRecv"
+#define IMESSSEND_STR "iMessSend"
+#define IMESSRECV_STR "iMessRecv"
+#define PREVCHAINLEN_STR "prevChainLen"
+#define SKIPPEDKEYS_STR "skippedKeys"
+#define DHPUBLIC_STR "DHPublic"
+#define IMESS_STR "iMess"
+#define MESSAGEKEY_STR "messageKey"

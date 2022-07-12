@@ -19,6 +19,8 @@ public:
                          InstanceMethod("verifySignature",        &SignalProto_Native::VerifySignature),
                          InstanceMethod("calculateSharedSecretA", &SignalProto_Native::CalculateSharedSecretA),
                          InstanceMethod("calculateSharedSecretB", &SignalProto_Native::CalculateSharedSecretB),
+                         InstanceMethod("rachetInitAlice",        &SignalProto_Native::RachetInitAlice),
+                         InstanceMethod("rachetInitBob",          &SignalProto_Native::RachetInitBob),
                         });
 
         Napi::FunctionReference* constructor = new Napi::FunctionReference();
@@ -48,23 +50,31 @@ public:
     }
 
 
-    bool parseKeyPair(Napi::Env& env, Napi::Object NKeyPair, KeyPair& keyPair)
+    void parsePrivateKey(Napi::Env& env, Napi::Buffer<u_char>& NPrivateKey, Int& privateKey)
+    {
+        privateKey = this->proto.deserializeInt(Buffer((char*)NPrivateKey.Data(), NPrivateKey.Length()));
+    }
+
+    void parsePublicKey(Napi::Env& env, Napi::Buffer<u_char>& NPublicKey, PointMongomery& publicKey)
+    {
+        try {
+            publicKey = this->proto.deserializeMongomeryPoint(Buffer((char*)NPublicKey.Data(), NPublicKey.Length()));
+        } catch (DeserializeErrorException& e) {
+            throw Napi::Error::New(env, e.what());
+        } catch (InvalidPointException& e) {
+            throw Napi::Error::New(env, e.what());
+        }
+    }
+
+    bool parseKeyPair(Napi::Env& env, Napi::Object& NKeyPair, KeyPair& keyPair)
     {
         if (NKeyPair.Get(PUBLIC_KEY_STR).IsBuffer()
          && NKeyPair.Get(PRIVATE_KEY_STR).IsBuffer())
         {
             Napi::Buffer<u_char> NPublicKey  = NKeyPair.Get(PUBLIC_KEY_STR).As<Napi::Buffer<u_char>>();
             Napi::Buffer<u_char> NPrivateKey = NKeyPair.Get(PRIVATE_KEY_STR).As<Napi::Buffer<u_char>>();
-
-            try {
-                keyPair.publicKey = this->proto.deserializeMongomeryPoint(Buffer((char*)NPublicKey.Data(), NPublicKey.Length()));
-            } catch (DeserializeErrorException& e) {
-                throw Napi::Error::New(env, e.what());
-            } catch (InvalidPointException& e) {
-                throw Napi::Error::New(env, e.what());
-            }
-
-            keyPair.privateKey = this->proto.deserializeInt(Buffer((char*)NPrivateKey.Data(), NPrivateKey.Length()));
+            this->parsePublicKey(env, NPublicKey, keyPair.publicKey);
+            this->parsePrivateKey(env, NPrivateKey, keyPair.privateKey);
             return true;
         }
         return false;
@@ -107,21 +117,69 @@ public:
     }
 
 
-    Napi::Object ToNapiObject(Napi::Env& env, KeyPair& keyPair)
+    inline Napi::Number ToNapiNumber(Napi::Env& env, Int& num)
     {
-        Buffer serializedPublicKey = this->proto.serialize(keyPair.publicKey);
-        Buffer serializedPrivateKey = this->proto.serialize(keyPair.privateKey);
+        if (num.fits_ulong_p())
+            return Napi::Number::New(env, num.get_ui());
+        else 
+            return Napi::Number::New(env, -1);
+    }
 
+    inline Napi::Boolean ToNapiObject(Napi::Env& env, bool val)
+    {
+        return Napi::Boolean::New(env, val);
+    }
+
+    inline Napi::Buffer<u_char> ToNapiObject(Napi::Env& env, Buffer& buf)
+    {
+        return Napi::Buffer<u_char>::Copy(env, buf.data(), buf.len());
+    }
+
+    inline Napi::Buffer<u_char> ToNapiObject(Napi::Env& env, Int& privateKey)
+    {
+        Buffer serializedPrivateKey = this->proto.serialize(privateKey);
+        return this->ToNapiObject(env, serializedPrivateKey);
+    }
+
+    inline Napi::Buffer<u_char> ToNapiObject(Napi::Env& env, PointMongomery& publicKey)
+    {
+        Buffer serializedPublicKey = this->proto.serialize(publicKey);
+        return this->ToNapiObject(env, serializedPublicKey);
+    }
+
+    inline Napi::Object ToNapiObject(Napi::Env& env, KeyPair& keyPair)
+    {
         Napi::Object NKeyPairObj = Napi::Object::New(env);
-        NKeyPairObj.Set(Napi::String::New(env, PUBLIC_KEY_STR), Napi::Buffer<u_char>::Copy(env, serializedPublicKey.data(), serializedPublicKey.len()));
-        NKeyPairObj.Set(Napi::String::New(env, PRIVATE_KEY_STR), Napi::Buffer<u_char>::Copy(env, serializedPrivateKey.data(), serializedPrivateKey.len()));
+        NKeyPairObj.Set(PUBLIC_KEY_STR,  this->ToNapiObject(env, keyPair.publicKey));
+        NKeyPairObj.Set(PRIVATE_KEY_STR, this->ToNapiObject(env, keyPair.privateKey));
         return NKeyPairObj;
     }
 
-    Napi::Object ToNapiObject(Napi::Env& env, RachetState& state)
+    inline Napi::Array ToNapiObject(Napi::Env& env, std::vector<SkippedKeyNode>& skippedKeys) // TODO: Create a template here.
+    {
+        Napi::Array NSkippedKeys = Napi::Array::New(env, skippedKeys.size());
+        for (int i = 0; i < (int)skippedKeys.size(); ++i) {
+            Napi::Object NSkippedKey = Napi::Object::New(env);
+            NSkippedKey.Set(DHPUBLIC_STR,    this->ToNapiObject(env, skippedKeys[i].DHPublic));
+            NSkippedKey.Set(IMESS_STR,       this->ToNapiNumber(env, skippedKeys[i].iMess));
+            NSkippedKey.Set(MESSAGEKEY_STR,  this->ToNapiObject(env, skippedKeys[i].messageKey));
+            NSkippedKeys.Set(i, NSkippedKey);
+        }
+        return NSkippedKeys;
+    }
+
+    inline Napi::Object ToNapiObject(Napi::Env& env, RachetState& state)
     {
         Napi::Object NRachetStateObj = Napi::Object::New(env);
-        NRachetStateObj.Set(Napi::String::New(env, ))
+        NRachetStateObj.Set(DHSEND_STR,       this->ToNapiObject(env, state.DHSend));
+        NRachetStateObj.Set(DHRECV_STR,       this->ToNapiObject(env, state.DHRecv));
+        NRachetStateObj.Set(ROOTKEY_STR,      this->ToNapiObject(env, state.rootKey));
+        NRachetStateObj.Set(CHAINKEYSEND_STR, this->ToNapiObject(env, state.chainKeySend));
+        NRachetStateObj.Set(CHAINKEYRECV_STR, this->ToNapiObject(env, state.chainKeyRecv));
+        NRachetStateObj.Set(IMESSSEND_STR,    this->ToNapiNumber(env, state.iMessSend));
+        NRachetStateObj.Set(IMESSRECV_STR,    this->ToNapiNumber(env, state.iMessRecv));
+        NRachetStateObj.Set(PREVCHAINLEN_STR, this->ToNapiNumber(env, state.prevChainLen));
+        NRachetStateObj.Set(SKIPPEDKEYS_STR,  this->ToNapiObject(env, state.skippedKeys));
         return NRachetStateObj;
     }
 
@@ -151,11 +209,7 @@ public:
                                 input
                                );
                                
-            return Napi::Buffer<u_char>::Copy(
-                    env,
-                    signature.data(),
-                    signature.len()
-                   );
+            return this->ToNapiObject(env, signature);
         }
 
         throw Napi::TypeError::New(env, "Argument supply should be: (Buffer privateKey, Buffer input)");
@@ -177,7 +231,7 @@ public:
             Buffer input    ((char*)NInput.Data(), NInput.Length());
             Buffer signature((char*)NSignature.Data(), NSignature.Length());
 
-            return Napi::Boolean::New(
+            return this->ToNapiObject(
                     env,
                     this->proto.XEdDSA_verify(publicKey, input, signature)
                    );
@@ -200,11 +254,7 @@ public:
              && this->parsePreKeyBundleB(env, NBobKeyBundle, bobKeyBundle))
             {
                 Buffer sharedSecret = this->proto.calculateSharedSecret(aliceKeyBundle, bobKeyBundle);
-                return Napi::Buffer<u_char>::Copy(
-                    env,
-                    sharedSecret.data(),
-                    sharedSecret.len()
-                );
+                return this->ToNapiObject(env, sharedSecret);
             }    
         }
 
@@ -238,11 +288,7 @@ public:
              && this->parsePreKeyBundleB(env, NBobKeyBundle, bobKeyBundle))
             {
                 Buffer sharedSecret = this->proto.calculateSharedSecret(bobKeyBundle, aliceKeyBundle);
-                return Napi::Buffer<u_char>::Copy(
-                    env,
-                    sharedSecret.data(),
-                    sharedSecret.len()
-                );
+                return this->ToNapiObject(env, sharedSecret);
             }    
         }
 
@@ -275,11 +321,7 @@ public:
              && this->parseKeyPair(env, NBobIdentityKey, bobIdentityKey))
             {
                 Buffer associatedData = this->proto.calculateAssociatedData(aliceIdentityKey, bobIdentityKey);
-                return Napi::Buffer<u_char>::Copy(
-                    env,
-                    associatedData.data(),
-                    associatedData.len()
-                );
+                return this->ToNapiObject(env, associatedData);
             }  
         }      
 
@@ -299,14 +341,14 @@ public:
     {
         Napi::Env env = info.Env();
         if (info.Length() >= 2 && info[0].IsBuffer() && info[1].IsObject()) {
-            Napi::Buffer<u_char> NSharedSecret = info[0].As<Buffer<u_char>>();
+            Napi::Buffer<u_char> NSharedSecret = info[0].As<Napi::Buffer<u_char>>();
             Napi::Object         NBobKeyPair   = info[1].ToObject();
 
             // Parse key pair            
             KeyPair bobKeyPair;
             this->parseKeyPair(env, NBobKeyPair, bobKeyPair);
             // Parse buffer
-            Buffer sharedSecret(NSharedSecret.Data(), NSharedSecret.Length());
+            Buffer sharedSecret((char*)NSharedSecret.Data(), NSharedSecret.Length());
             // Return state
             RachetState state;
             this->proto.rachetInitAlice(&state, sharedSecret, bobKeyPair.publicKey);
@@ -324,7 +366,29 @@ public:
 
     Napi::Value RachetInitBob(const Napi::CallbackInfo& info)
     {
+        Napi::Env env = info.Env();
+        if (info.Length() >= 2 && info[0].IsBuffer() && info[1].IsObject()) {
+            Napi::Buffer<u_char> NSharedSecret = info[0].As<Napi::Buffer<u_char>>();
+            Napi::Object         NBobKeyPair   = info[1].ToObject();
 
+            // Parse key pair            
+            KeyPair bobKeyPair;
+            this->parseKeyPair(env, NBobKeyPair, bobKeyPair);
+            // Parse buffer
+            Buffer sharedSecret((char*)NSharedSecret.Data(), NSharedSecret.Length());
+            // Return state
+            RachetState state;
+            this->proto.rachetInitBob(&state, sharedSecret, bobKeyPair);
+            return this->ToNapiObject(env, state);
+        }
+        
+        throw Napi::TypeError::New(env, 
+            "Argument supply should be: (Buffer sharedSecret, Object bobKeyPair)\n"
+            "where:\n"
+            "\n"                 
+            "Object [bobKeyPair] is:\n"
+            "   @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
+        );    
     }
 
     Napi::Value SignalEncrypt(const Napi::CallbackInfo& info)
