@@ -94,7 +94,7 @@ Int inverse(Int x, Int p)
         p.get_mpz_t()
     )) {
         std::stringstream errorStream;
-        errorStream << "[ ! ] Error! Calc.h: inverse(): inverse of \"" << x << "\" mod \"" << p << " does not exist." << std::endl;
+        errorStream << "[ ! ] Error! Calc.h: inverse(): inverse of \"" << x << "\" mod \"" << p << "\" does not exist." << std::endl;
         throw MathErrorException(errorStream.str());
     }
     return result;

@@ -289,7 +289,7 @@ public:
             throw InvalidPointException(errorStream.str());
         }
 
-        if (P->z == 1)
+        if (P->z == 1 || P->z == 0)
             return;
         P->x = mod(P->x * inverse(P->z, this->p), this->p);
         P->z = 1;

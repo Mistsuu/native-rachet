@@ -438,7 +438,7 @@ public:
             state->chainKeySend = this->updateRootKey(
                                     &state->rootKey, 
                                     this->serialize(this->calculateDHSharedSecret(state->DHSend.privateKey, state->DHRecv))
-                                );
+                                  );
         }
     }
 

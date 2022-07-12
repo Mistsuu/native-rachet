@@ -2,14 +2,7 @@
 
 #include <napi.h>
 #include "Crypto/SignalProtocol.h"
-
-#define PUBLIC_KEY_STR "publicKey"
-#define PRIVATE_KEY_STR "privateKey"
-#define IDENTITY_KEY_STR "identityKey"
-#define EPHEMERAL_KEY_STR "ephemeralKey"
-#define SIGNATURE_STR "signature"
-#define SIGNED_PREKEY_STR "signedPreKey"
-#define ONETIME_PREKEY_STR "oneTimePreKey"
+#include "Const_Native.h"
 
 class SignalProto_Native : public Napi::ObjectWrap<SignalProto_Native>
 {
@@ -182,23 +175,7 @@ public:
     Napi::Value CalculateSharedSecretA(const Napi::CallbackInfo& info)
     {
         Napi::Env env = info.Env();
-
-        if (info.Length() < 2)
-            throw Napi::TypeError::New(env, 
-                "Argument supply should be: (Object aliceKeyBundle, Object bobKeyBundle)\n"
-                "where:\n"
-                "\n"                 
-                "Object [aliceKeyBundle] contains:\n"
-                "   - " IDENTITY_KEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
-                "   - " EPHEMERAL_KEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"
-                "\n"                 
-                "Object [bobKeyBundle] contains:\n"
-                "   - " IDENTITY_KEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
-                "   - " SIGNED_PREKEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
-                "   - " ONETIME_PREKEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
-            );
-
-        if (info[0].IsObject() && info[1].IsObject()) {
+        if (info.Length() >= 2 && info[0].IsObject() && info[1].IsObject()) {
             Napi::Object NAliceKeyBundle = info[0].ToObject();
             Napi::Object NBobKeyBundle   = info[1].ToObject();
 
@@ -236,23 +213,7 @@ public:
     Napi::Value CalculateSharedSecretB(const Napi::CallbackInfo& info)
     {
         Napi::Env env = info.Env();
-
-        if (info.Length() < 2)
-            throw Napi::TypeError::New(env, 
-                "Argument supply should be: (Object aliceKeyBundle, Object bobKeyBundle)\n"
-                "where:\n"
-                "\n"                 
-                "Object [bobKeyBundle] contains:\n"
-                "   - " IDENTITY_KEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
-                "   - " SIGNED_PREKEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
-                "   - " ONETIME_PREKEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
-                "\n"                 
-                "Object [aliceKeyBundle] contains:\n"
-                "   - " IDENTITY_KEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
-                "   - " EPHEMERAL_KEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"
-            );
-
-        if (info[0].IsObject() && info[1].IsObject()) {
+        if (info.Length() >= 2 && info[0].IsObject() && info[1].IsObject()) {
             Napi::Object NBobKeyBundle   = info[0].ToObject();
             Napi::Object NAliceKeyBundle = info[1].ToObject();
 
@@ -285,5 +246,63 @@ public:
             "   - " EPHEMERAL_KEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"
         );
         
+    }
+
+    Napi::Value CalculateAssociatedData(const Napi::CallbackInfo& info)
+    {
+        Napi::Env env = info.Env();
+        if (info.Length() >= 2 && info[0].IsObject() && info[1].IsObject()) {
+            Napi::Object NAliceKeyBundle = info[0].ToObject();
+            Napi::Object NBobKeyBundle   = info[1].ToObject();
+
+            x3DHPreKeyBundleA aliceKeyBundle;
+            x3DHPreKeyBundleB bobKeyBundle;
+
+            if (this->parsePreKeyBundleA(env, NAliceKeyBundle, aliceKeyBundle)
+             && this->parsePreKeyBundleB(env, NBobKeyBundle, bobKeyBundle))
+            {
+                Buffer associatedData = this->proto.calculateAssociatedData(aliceKeyBundle, bobKeyBundle);
+                return Napi::Buffer<u_char>::Copy(
+                    env,
+                    associatedData.data(),
+                    associatedData.len()
+                );
+            }  
+        }      
+
+        throw Napi::TypeError::New(env, 
+            "Argument supply should be: (Object aliceKeyBundle, Object bobKeyBundle)\n"
+            "where:\n"
+            "\n"                 
+            "Object [aliceKeyBundle] contains:\n"
+            "   - " IDENTITY_KEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
+            "   - " EPHEMERAL_KEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"
+            "\n"                 
+            "Object [bobKeyBundle] contains:\n"
+            "   - " IDENTITY_KEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
+            "   - " SIGNED_PREKEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
+            "   - " ONETIME_PREKEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
+        );    
+    }
+
+    Napi::Value RachetInitAlice(const Napi::CallbackInfo& info)
+    {
+        RachetState state;
+
+    }
+
+    Napi::Value RachetInitBob(const Napi::CallbackInfo& info)
+    {
+
+    }
+
+    Napi::Value SignalEncrypt(const Napi::CallbackInfo& info)
+    {
+
+    }
+
+    Napi::Value SignalDecrypt(const Napi::CallbackInfo& info)
+    {
+
     }
 };
