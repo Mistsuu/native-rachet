@@ -9,18 +9,22 @@ class SignalProto_Native : public Napi::ObjectWrap<SignalProto_Native>
 private:
     SignalProtocol proto;
 public:
-    static Napi::Object Init(Napi::Env env, Napi::Object exports)
+    static Napi::Object Init(Napi::Env& env, Napi::Object& exports)
     {
         Napi::Function func = 
             DefineClass(env,
                         "SignalProto_Native",
-                        {InstanceMethod("generateKeyPair",        &SignalProto_Native::GenerateKeyPair),
-                         InstanceMethod("calculateSignature",     &SignalProto_Native::CalculateSignature),
-                         InstanceMethod("verifySignature",        &SignalProto_Native::VerifySignature),
-                         InstanceMethod("calculateSharedSecretA", &SignalProto_Native::CalculateSharedSecretA),
-                         InstanceMethod("calculateSharedSecretB", &SignalProto_Native::CalculateSharedSecretB),
-                         InstanceMethod("rachetInitAlice",        &SignalProto_Native::RachetInitAlice),
-                         InstanceMethod("rachetInitBob",          &SignalProto_Native::RachetInitBob),
+                        {InstanceMethod("generateKeyPair",         &SignalProto_Native::GenerateKeyPair),
+                         InstanceMethod("calculateSignature",      &SignalProto_Native::CalculateSignature),
+                         InstanceMethod("verifySignature",         &SignalProto_Native::VerifySignature),
+                         InstanceMethod("calculateSharedSecretA",  &SignalProto_Native::CalculateSharedSecretA),
+                         InstanceMethod("calculateSharedSecretB",  &SignalProto_Native::CalculateSharedSecretB),
+                         InstanceMethod("calculateAssociatedData", &SignalProto_Native::CalculateAssociatedData),
+                         InstanceMethod("rachetInitAlice",         &SignalProto_Native::RachetInitAlice),
+                         InstanceMethod("rachetInitBob",           &SignalProto_Native::RachetInitBob),
+                         InstanceMethod("signalEncrypt",           &SignalProto_Native::SignalEncrypt),
+                         InstanceMethod("signalDecrypt",           &SignalProto_Native::SignalDecrypt),
+                         InstanceMethod("test",                    &SignalProto_Native::TestFunc),
                         });
 
         Napi::FunctionReference* constructor = new Napi::FunctionReference();
@@ -50,6 +54,16 @@ public:
     }
 
 
+    void parseNumber(Napi::Env& env, Napi::Number NNum, Int& num)
+    {
+        num = NNum.ToString().Utf8Value();
+    }
+
+    void parseBuffer(Napi::Env& env, Napi::Buffer<u_char> NBuffer, Buffer& buf)
+    {
+        buf.set((char*)NBuffer.Data(), NBuffer.Length());
+    }
+
     void parsePrivateKey(Napi::Env& env, Napi::Buffer<u_char>& NPrivateKey, Int& privateKey)
     {
         privateKey = this->proto.deserializeInt(Buffer((char*)NPrivateKey.Data(), NPrivateKey.Length()));
@@ -68,11 +82,11 @@ public:
 
     bool parseKeyPair(Napi::Env& env, Napi::Object& NKeyPair, KeyPair& keyPair)
     {
-        if (NKeyPair.Get(PUBLIC_KEY_STR).IsBuffer()
-         && NKeyPair.Get(PRIVATE_KEY_STR).IsBuffer())
+        if (NKeyPair.Get(PUBLIC_KEY).IsBuffer()
+         && NKeyPair.Get(PRIVATE_KEY).IsBuffer())
         {
-            Napi::Buffer<u_char> NPublicKey  = NKeyPair.Get(PUBLIC_KEY_STR).As<Napi::Buffer<u_char>>();
-            Napi::Buffer<u_char> NPrivateKey = NKeyPair.Get(PRIVATE_KEY_STR).As<Napi::Buffer<u_char>>();
+            Napi::Buffer<u_char> NPublicKey  = NKeyPair.Get(PUBLIC_KEY).As<Napi::Buffer<u_char>>();
+            Napi::Buffer<u_char> NPrivateKey = NKeyPair.Get(PRIVATE_KEY).As<Napi::Buffer<u_char>>();
             this->parsePublicKey(env, NPublicKey, keyPair.publicKey);
             this->parsePrivateKey(env, NPrivateKey, keyPair.privateKey);
             return true;
@@ -82,11 +96,11 @@ public:
 
     bool parsePreKeyBundleA(Napi::Env& env, Napi::Object& NAliceKeyBundle, x3DHPreKeyBundleA& aliceKeyBundle)
     {
-        if (NAliceKeyBundle.Get(IDENTITY_KEY_STR).IsObject() 
-         && NAliceKeyBundle.Get(EPHEMERAL_KEY_STR).IsObject()) 
+        if (NAliceKeyBundle.Get(IDENTITY_KEY).IsObject() 
+         && NAliceKeyBundle.Get(EPHEMERAL_KEY).IsObject()) 
         {
-            Napi::Object NIdentityKey  = NAliceKeyBundle.Get(IDENTITY_KEY_STR).ToObject();
-            Napi::Object NEphemeralKey = NAliceKeyBundle.Get(EPHEMERAL_KEY_STR).ToObject();
+            Napi::Object NIdentityKey  = NAliceKeyBundle.Get(IDENTITY_KEY).ToObject();
+            Napi::Object NEphemeralKey = NAliceKeyBundle.Get(EPHEMERAL_KEY).ToObject();
             if (!this->parseKeyPair(env, NIdentityKey, aliceKeyBundle.identityKey))
                 return false;
             if (!this->parseKeyPair(env, NEphemeralKey, aliceKeyBundle.ephemeralKey))
@@ -98,19 +112,100 @@ public:
 
     bool parsePreKeyBundleB(Napi::Env& env, Napi::Object& NBobKeyBundle, x3DHPreKeyBundleB& bobKeyBundle)
     {
-        if (NBobKeyBundle.Get(IDENTITY_KEY_STR).IsObject() 
-         && NBobKeyBundle.Get(SIGNED_PREKEY_STR).IsObject() 
-         && NBobKeyBundle.Get(ONETIME_PREKEY_STR).IsObject()) 
+        if (NBobKeyBundle.Get(IDENTITY_KEY).IsObject() 
+         && NBobKeyBundle.Get(SIGNED_PREKEY).IsObject() 
+         && NBobKeyBundle.Get(ONETIME_PREKEY).IsObject()) 
         {
-            Napi::Object NIdentityKey   = NBobKeyBundle.Get(IDENTITY_KEY_STR).ToObject();
-            Napi::Object NSignedPreKey  = NBobKeyBundle.Get(SIGNED_PREKEY_STR).ToObject();
-            Napi::Object NOneTimePreKey = NBobKeyBundle.Get(ONETIME_PREKEY_STR).ToObject();
+            Napi::Object NIdentityKey   = NBobKeyBundle.Get(IDENTITY_KEY).ToObject();
+            Napi::Object NSignedPreKey  = NBobKeyBundle.Get(SIGNED_PREKEY).ToObject();
+            Napi::Object NOneTimePreKey = NBobKeyBundle.Get(ONETIME_PREKEY).ToObject();
             if (!this->parseKeyPair(env, NIdentityKey, bobKeyBundle.identityKey))
                 return false;
             if (!this->parseKeyPair(env, NSignedPreKey, bobKeyBundle.signedPreKey))
                 return false;
             if (!this->parseKeyPair(env, NOneTimePreKey, bobKeyBundle.oneTimePreKey))
                 return false;
+            return true;
+        }
+        return false;
+    }
+
+    bool parseSkippedKeys(Napi::Env& env, Napi::Array& NSkippedKeys, std::vector<SkippedKeyNode>& skippedKeys)
+    {
+        skippedKeys.resize(NSkippedKeys.Length());
+        for (int i = 0; i < (int)NSkippedKeys.Length(); ++i) {
+            if (!NSkippedKeys.Get(i).IsObject())
+                return false;
+            
+            Napi::Object NSkippedKey = NSkippedKeys.Get(i).ToObject();
+            if (!NSkippedKey.Get(DHPUBLIC).IsBuffer()
+             || !NSkippedKey.Get(IMESS).IsNumber()
+             || !NSkippedKey.Get(MESSAGEKEY).IsBuffer())
+                return false;
+                
+            Napi::Buffer<u_char> NDHPublic   = NSkippedKey.Get(DHPUBLIC).As<Napi::Buffer<u_char>>();
+            Napi::Number         NIMess      = NSkippedKey.Get(IMESS).ToNumber();
+            Napi::Buffer<u_char> NMessageKey = NSkippedKey.Get(MESSAGEKEY).As<Napi::Buffer<u_char>>();
+
+            this->parsePublicKey(env, NDHPublic, skippedKeys[i].DHPublic);
+            this->parseNumber(env, NIMess, skippedKeys[i].iMess);
+            this->parseBuffer(env, NMessageKey, skippedKeys[i].messageKey);
+        }
+        return true;
+    }
+
+    bool parseRachetState(Napi::Env& env, Napi::Object& NRachetStateObj, RachetState& state)
+    {
+        if (NRachetStateObj.Get(DHSEND).IsObject()
+         && NRachetStateObj.Get(DHRECV).IsBuffer()
+         && NRachetStateObj.Get(ROOTKEY).IsBuffer()
+         && NRachetStateObj.Get(CHAINKEYSEND).IsBuffer()
+         && NRachetStateObj.Get(CHAINKEYRECV).IsBuffer()
+         && NRachetStateObj.Get(IMESSSEND).IsNumber()
+         && NRachetStateObj.Get(IMESSRECV).IsNumber()
+         && NRachetStateObj.Get(PREVCHAINLEN).IsNumber()
+         && NRachetStateObj.Get(SKIPPEDKEYS).IsArray())
+        {
+            Napi::Object            NDHSend         = NRachetStateObj.Get(DHSEND).ToObject();
+            Napi::Buffer<u_char>    NDHRecv         = NRachetStateObj.Get(DHRECV).As<Napi::Buffer<u_char>>();
+            Napi::Buffer<u_char>    NRootKey        = NRachetStateObj.Get(ROOTKEY).As<Napi::Buffer<u_char>>();
+            Napi::Buffer<u_char>    NChainKeySend   = NRachetStateObj.Get(CHAINKEYSEND).As<Napi::Buffer<u_char>>();
+            Napi::Buffer<u_char>    NChainKeyRecv   = NRachetStateObj.Get(CHAINKEYRECV).As<Napi::Buffer<u_char>>();
+            Napi::Number            NIMessSend      = NRachetStateObj.Get(IMESSSEND).ToNumber();
+            Napi::Number            NIMessRecv      = NRachetStateObj.Get(IMESSRECV).ToNumber();
+            Napi::Number            NPrevChainLen   = NRachetStateObj.Get(PREVCHAINLEN).ToNumber();
+            Napi::Array             NSkippedKeys    = NRachetStateObj.Get(SKIPPEDKEYS).As<Napi::Array>();
+            
+            if (!this->parseKeyPair(env, NDHSend, state.DHSend))
+                return false;
+            if (!this->parseSkippedKeys(env, NSkippedKeys, state.skippedKeys))
+                return false;
+            this->parsePublicKey(env, NDHRecv, state.DHRecv);
+            this->parseBuffer(env, NRootKey, state.rootKey);
+            this->parseBuffer(env, NChainKeySend, state.chainKeySend);
+            this->parseBuffer(env, NChainKeyRecv, state.chainKeyRecv);
+            this->parseNumber(env, NIMessSend, state.iMessSend);
+            this->parseNumber(env, NIMessRecv, state.iMessRecv);
+            this->parseNumber(env, NPrevChainLen, state.prevChainLen);
+            return true;
+        }
+        return false;
+    }
+
+    bool parseRachetHeader(Napi::Env& env, Napi::Object& NRachetHeaderObj, RachetHeader& header)
+    {
+        if (NRachetHeaderObj.Get(PUBLIC_KEY).IsBuffer()
+         && NRachetHeaderObj.Get(IMESS).IsNumber()
+         && NRachetHeaderObj.Get(PREVCHAINLEN).IsNumber())
+        {
+            Napi::Buffer<u_char> NPublicKey    = NRachetHeaderObj.Get(PUBLIC_KEY).As<Napi::Buffer<u_char>>();
+            Napi::Number         NIMess        = NRachetHeaderObj.Get(IMESS).ToNumber();
+            Napi::Number         NPrevChainLen = NRachetHeaderObj.Get(PREVCHAINLEN).ToNumber();
+
+            this->parsePublicKey(env, NPublicKey, header.publicKey);
+            this->parseNumber(env, NIMess, header.iMess);
+            this->parseNumber(env, NPrevChainLen, header.prevChainLen);
+
             return true;
         }
         return false;
@@ -143,15 +238,19 @@ public:
 
     inline Napi::Buffer<u_char> ToNapiObject(Napi::Env& env, PointMongomery& publicKey)
     {
-        Buffer serializedPublicKey = this->proto.serialize(publicKey);
-        return this->ToNapiObject(env, serializedPublicKey);
+        try {
+            Buffer serializedPublicKey = this->proto.serialize(publicKey);
+            return this->ToNapiObject(env, serializedPublicKey);
+        } catch (InvalidPointException& e) {
+            throw Napi::Error::New(env, e.what());
+        }
     }
 
     inline Napi::Object ToNapiObject(Napi::Env& env, KeyPair& keyPair)
     {
         Napi::Object NKeyPairObj = Napi::Object::New(env);
-        NKeyPairObj.Set(PUBLIC_KEY_STR,  this->ToNapiObject(env, keyPair.publicKey));
-        NKeyPairObj.Set(PRIVATE_KEY_STR, this->ToNapiObject(env, keyPair.privateKey));
+        NKeyPairObj.Set(PUBLIC_KEY,  this->ToNapiObject(env, keyPair.publicKey));
+        NKeyPairObj.Set(PRIVATE_KEY, this->ToNapiObject(env, keyPair.privateKey));
         return NKeyPairObj;
     }
 
@@ -160,9 +259,9 @@ public:
         Napi::Array NSkippedKeys = Napi::Array::New(env, skippedKeys.size());
         for (int i = 0; i < (int)skippedKeys.size(); ++i) {
             Napi::Object NSkippedKey = Napi::Object::New(env);
-            NSkippedKey.Set(DHPUBLIC_STR,    this->ToNapiObject(env, skippedKeys[i].DHPublic));
-            NSkippedKey.Set(IMESS_STR,       this->ToNapiNumber(env, skippedKeys[i].iMess));
-            NSkippedKey.Set(MESSAGEKEY_STR,  this->ToNapiObject(env, skippedKeys[i].messageKey));
+            NSkippedKey.Set(DHPUBLIC,    this->ToNapiObject(env, skippedKeys[i].DHPublic));
+            NSkippedKey.Set(IMESS,       this->ToNapiNumber(env, skippedKeys[i].iMess));
+            NSkippedKey.Set(MESSAGEKEY,  this->ToNapiObject(env, skippedKeys[i].messageKey));
             NSkippedKeys.Set(i, NSkippedKey);
         }
         return NSkippedKeys;
@@ -171,16 +270,25 @@ public:
     inline Napi::Object ToNapiObject(Napi::Env& env, RachetState& state)
     {
         Napi::Object NRachetStateObj = Napi::Object::New(env);
-        NRachetStateObj.Set(DHSEND_STR,       this->ToNapiObject(env, state.DHSend));
-        NRachetStateObj.Set(DHRECV_STR,       this->ToNapiObject(env, state.DHRecv));
-        NRachetStateObj.Set(ROOTKEY_STR,      this->ToNapiObject(env, state.rootKey));
-        NRachetStateObj.Set(CHAINKEYSEND_STR, this->ToNapiObject(env, state.chainKeySend));
-        NRachetStateObj.Set(CHAINKEYRECV_STR, this->ToNapiObject(env, state.chainKeyRecv));
-        NRachetStateObj.Set(IMESSSEND_STR,    this->ToNapiNumber(env, state.iMessSend));
-        NRachetStateObj.Set(IMESSRECV_STR,    this->ToNapiNumber(env, state.iMessRecv));
-        NRachetStateObj.Set(PREVCHAINLEN_STR, this->ToNapiNumber(env, state.prevChainLen));
-        NRachetStateObj.Set(SKIPPEDKEYS_STR,  this->ToNapiObject(env, state.skippedKeys));
+        NRachetStateObj.Set(DHSEND,       this->ToNapiObject(env, state.DHSend));
+        NRachetStateObj.Set(DHRECV,       this->ToNapiObject(env, state.DHRecv));
+        NRachetStateObj.Set(ROOTKEY,      this->ToNapiObject(env, state.rootKey));
+        NRachetStateObj.Set(CHAINKEYSEND, this->ToNapiObject(env, state.chainKeySend));
+        NRachetStateObj.Set(CHAINKEYRECV, this->ToNapiObject(env, state.chainKeyRecv));
+        NRachetStateObj.Set(IMESSSEND,    this->ToNapiNumber(env, state.iMessSend));
+        NRachetStateObj.Set(IMESSRECV,    this->ToNapiNumber(env, state.iMessRecv));
+        NRachetStateObj.Set(PREVCHAINLEN, this->ToNapiNumber(env, state.prevChainLen));
+        NRachetStateObj.Set(SKIPPEDKEYS,  this->ToNapiObject(env, state.skippedKeys));
         return NRachetStateObj;
+    }
+
+    inline Napi::Object ToNapiObject(Napi::Env& env, RachetHeader& header)
+    {
+        Napi::Object NRachetHeaderObj = Napi::Object::New(env);
+        NRachetHeaderObj.Set(PUBLIC_KEY,    this->ToNapiObject(env, header.publicKey));
+        NRachetHeaderObj.Set(IMESS,         this->ToNapiNumber(env, header.iMess));
+        NRachetHeaderObj.Set(PREVCHAINLEN,  this->ToNapiNumber(env, header.prevChainLen));
+        return NRachetHeaderObj;
     }
 
     
@@ -263,13 +371,13 @@ public:
             "where:\n"
             "\n"                 
             "Object [aliceKeyBundle] contains:\n"
-            "   - " IDENTITY_KEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
-            "   - " EPHEMERAL_KEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"
+            "   - " IDENTITY_KEY " @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"                 
+            "   - " EPHEMERAL_KEY " @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"
             "\n"                 
             "Object [bobKeyBundle] contains:\n"
-            "   - " IDENTITY_KEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
-            "   - " SIGNED_PREKEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
-            "   - " ONETIME_PREKEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
+            "   - " IDENTITY_KEY " @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"                 
+            "   - " SIGNED_PREKEY " @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"                 
+            "   - " ONETIME_PREKEY " @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"                 
         );
         
     }
@@ -297,13 +405,13 @@ public:
             "where:\n"
             "\n"                 
             "Object [bobKeyBundle] contains:\n"
-            "   - " IDENTITY_KEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
-            "   - " SIGNED_PREKEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
-            "   - " ONETIME_PREKEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
+            "   - " IDENTITY_KEY " @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"                 
+            "   - " SIGNED_PREKEY " @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"                 
+            "   - " ONETIME_PREKEY " @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"                 
             "\n"                 
             "Object [aliceKeyBundle] contains:\n"
-            "   - " IDENTITY_KEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
-            "   - " EPHEMERAL_KEY_STR " @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"
+            "   - " IDENTITY_KEY " @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"                 
+            "   - " EPHEMERAL_KEY " @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"
         );
         
     }
@@ -330,10 +438,10 @@ public:
             "where:\n"
             "\n"                 
             "Object [aliceIdentityKey] is:\n"
-            "   @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
+            "   @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"                 
             "\n"                 
             "Object [bobIdentityKey] is:\n"
-            "   @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
+            "   @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"                 
         );    
     }
 
@@ -360,7 +468,7 @@ public:
             "where:\n"
             "\n"                 
             "Object [bobKeyPair] is:\n"
-            "   @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
+            "   @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"                 
         );    
     }
 
@@ -387,17 +495,89 @@ public:
             "where:\n"
             "\n"                 
             "Object [bobKeyPair] is:\n"
-            "   @Object { " PRIVATE_KEY_STR " @Buffer, " PUBLIC_KEY_STR " @Buffer }\n"                 
+            "   @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"                 
         );    
     }
 
     Napi::Value SignalEncrypt(const Napi::CallbackInfo& info)
     {
+        Napi::Env env = info.Env();
 
+        if (info.Length() >= 3 && info[0].IsObject() && info[1].IsBuffer() && info[2].IsBuffer()) {
+            Napi::Object         NRachetState      = info[0].ToObject();
+            Napi::Buffer<u_char> NPlaintext        = info[1].As<Napi::Buffer<u_char>>();
+            Napi::Buffer<u_char> NAssociatedData   = info[2].As<Napi::Buffer<u_char>>();
+            
+            RachetState rachetState;
+            RachetHeader rachetHeader;
+            Buffer plaintext;
+            Buffer associatedData;
+            if (this->parseRachetState(env, NRachetState, rachetState)) {
+                this->parseBuffer(env, NPlaintext, plaintext);
+                this->parseBuffer(env, NAssociatedData, associatedData);
+
+                Buffer ciphertext = this->proto.signalEncrypt(&rachetState, &rachetHeader, plaintext, associatedData);
+
+                Napi::Object NCiphertextObj = Napi::Object::New(env);
+                NCiphertextObj.Set(RACHET_STATE, this->ToNapiObject(env, rachetState));
+                NCiphertextObj.Set(RACHET_HEADER, this->ToNapiObject(env, rachetHeader));
+                NCiphertextObj.Set(CIPHERTEXT, this->ToNapiObject(env, ciphertext));
+                return NCiphertextObj;
+            }
+        }
+
+        throw Napi::TypeError::New(env, 
+            "Argument supply should be: (Object rachetState, Buffer plaintext, Buffer associatedData)\n"
+            "where:\n"
+            "\n"                 
+            "Object [rachetState] contains:\n"
+            "   - @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"                 
+        ); 
     }
 
     Napi::Value SignalDecrypt(const Napi::CallbackInfo& info)
     {
+        Napi::Env env = info.Env();
 
+        if (info.Length() >= 4 && info[0].IsObject() && info[1].IsObject() && info[2].IsBuffer() && info[3].IsBuffer()) {
+            Napi::Object         NRachetState      = info[0].ToObject();
+            Napi::Object         NRachetHeader     = info[1].ToObject();
+            Napi::Buffer<u_char> NCiphertext       = info[2].As<Napi::Buffer<u_char>>();
+            Napi::Buffer<u_char> NAssociatedData   = info[3].As<Napi::Buffer<u_char>>();
+            
+            RachetState rachetState;
+            RachetHeader rachetHeader;
+            Buffer ciphertext;
+            Buffer associatedData;
+            if (this->parseRachetState(env, NRachetState, rachetState)
+             && this->parseRachetHeader(env, NRachetHeader, rachetHeader)) {
+                this->parseBuffer(env, NCiphertext, ciphertext);
+                this->parseBuffer(env, NAssociatedData, associatedData);
+
+                Buffer plaintext = this->proto.signalDecrypt(&rachetState, rachetHeader, ciphertext, associatedData);
+
+                Napi::Object NPlaintextObj = Napi::Object::New(env);
+                NPlaintextObj.Set(RACHET_STATE, this->ToNapiObject(env, rachetHeader));
+                NPlaintextObj.Set(PLAINTEXT, this->ToNapiObject(env, plaintext));
+                return NPlaintextObj;
+            }
+        }
+
+        throw Napi::TypeError::New(env, 
+            "Argument supply should be: (Object rachetState, Object rachetHeader, Buffer ciphertext, Buffer associatedData)\n"
+            "where:\n"
+            "\n"                 
+            "Object [rachetState] contains:\n"
+            "   - @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"           
+            "\n"                 
+            "Object [rachetHeader] contains:\n"
+            "   - @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"        
+        ); 
+    }
+
+
+    Napi::Value TestFunc(const Napi::CallbackInfo& info) 
+    {
+        return Napi::Number::New(info.Env(), 128);
     }
 };

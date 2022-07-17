@@ -309,10 +309,6 @@ public:
     // ------------------------------ COMPARE ---------------------------------
     bool comparePoint(PointMongomery P, PointMongomery Q)
     {
-        if (P.isNull() && Q.isNull())
-            return true;
-        if (P.isNull() || Q.isNull())
-            return false;
         if (P.z == 0 && Q.z == 0)
             return true;
         if (P.z == 0 || Q.z == 0)

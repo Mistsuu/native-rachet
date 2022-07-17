@@ -33,6 +33,8 @@ public:
         this->iMess      = iMess;
         this->messageKey = messageKey;
     }
+
+    SkippedKeyNode() {}
 };
 
 class RachetState
@@ -446,7 +448,7 @@ public:
     {
         if (state) {
             state->DHSend       = bobKeyPair;
-            state->DHRecv       = PointMongomery::nullPoint();
+            state->DHRecv       = PointMongomery(0, 0);
             state->rootKey      = sharedSecret;
             state->chainKeySend = Buffer(""); 
             state->chainKeyRecv = Buffer("");
