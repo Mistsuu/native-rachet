@@ -133,10 +133,10 @@ public:
     {
         if (this->head) {
             free(this->head);
-            this->head       = NULL;
-            this->size       = 0;
-            this->actualSize = 0;
+            this->head = NULL;
         }
+        this->size       = 0;
+        this->actualSize = 0;
     }
 
     void zeroAll()
