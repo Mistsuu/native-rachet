@@ -3,7 +3,7 @@
 #include "Utils/Utils.h"
 
 // ------------------------ kdf settings ------------------------
-#define KDF_INFO_SIGN              Buffer ("mistsuuu_x3dhhh_ahhhhhh!!!")
+#define KDF_INFO_SIGN              Buffer("mistsuuu_x3dhhh_ahhhhhh!!!")
 #define KDF_INFO_UPDATE_ROOTKEY    Buffer("su_is_going_to_be_update_root!!!")
 #define KDF_INFO_GET_ENCRYPTKEY    Buffer("are_you_ready_to_be_encrypted?")
 #define HMAC_INPUT_UPDATE_CHAINKEY Buffer('\x01')
