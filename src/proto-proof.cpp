@@ -4,6 +4,7 @@
 // ----------------------------------------------------------------------------------------------------------\-
 #include <gmpxx.h>
 #include <iostream>
+#include <vector>
 #include "Crypto/SignalProtocol.h"
 
 using namespace std;
@@ -63,42 +64,58 @@ int main(int argc, char** argv)
                                             SEND FIRST MESSAGES
         ================================================================================================== */
     
-    RachetHeader aliceHeader;
-    RachetHeader bobHeader;
-    Buffer aliceMessage;
-    Buffer aliceMessageRandom;
-    Buffer aliceMessageRandom2;
+    vector<Buffer> alicePlaintexts = {
+                        Buffer("alice0"),
+                        Buffer("alice1"), 
+                        Buffer("alice2"), 
+                        Buffer("alice3"), 
+                        Buffer("alice4") 
+                    };
+
+    vector<Buffer> bobPlaintexts = {
+                        Buffer("bob0"),
+                        Buffer("bob1"),
+                        Buffer("bob2")
+                    };
 
     // >>> alice: [send initial message to bob]
-    aliceMessage = proto.signalEncrypt(&aliceRachetState, &aliceHeader, Buffer("helloooo1"), aliceAssocData);
-    aliceMessage = proto.signalEncrypt(&aliceRachetState, &aliceHeader, Buffer("helloooo2"), aliceAssocData);
-    RachetHeader randomHeader(aliceHeader.publicKey, aliceHeader.prevChainLen, aliceHeader.iMess);
-    aliceMessageRandom = aliceMessage;
-    aliceMessage = proto.signalEncrypt(&aliceRachetState, &aliceHeader, Buffer("helloooo3"), aliceAssocData);
-    aliceMessage = proto.signalEncrypt(&aliceRachetState, &aliceHeader, Buffer("helloooo4"), aliceAssocData);
-    aliceMessage = proto.signalEncrypt(&aliceRachetState, &aliceHeader, Buffer("helloooo5"), aliceAssocData);
-    RachetHeader randomHeader2(aliceHeader.publicKey, aliceHeader.prevChainLen, aliceHeader.iMess);
-    aliceMessageRandom2 = aliceMessage;
-    aliceMessage = proto.signalEncrypt(&aliceRachetState, &aliceHeader, Buffer("helloooo6"), aliceAssocData);
-
+    Buffer aliceCiphertext;
+    RachetHeader aliceHeader;
+    vector<Buffer> aliceCiphertexts;
+    vector<RachetHeader> aliceHeaders;
+    for (int i = 0; i < alicePlaintexts.size(); ++i) {
+        aliceCiphertext = proto.signalEncrypt(&aliceRachetState, &aliceHeader, alicePlaintexts[i], aliceAssocData);
+        aliceHeaders.push_back(aliceHeader);
+        aliceCiphertexts.push_back(aliceCiphertext);
+    }
 
     // >>> bob: [decrypt message from alice]
-    Buffer bobDecryptMessage;
-    bobDecryptMessage = proto.signalDecrypt(&bobRachetState, aliceHeader, aliceMessage, bobAssocData);
-    bobDecryptMessage.__debug__();
-    cout << bobRachetState.skippedKeys.size() << endl;
+    Buffer bobDecryptedCiphertext;
+    bobDecryptedCiphertext = proto.signalDecrypt(&bobRachetState, aliceHeaders[4], aliceCiphertexts[4], bobAssocData); bobDecryptedCiphertext.__debug__();
+    bobDecryptedCiphertext = proto.signalDecrypt(&bobRachetState, aliceHeaders[1], aliceCiphertexts[1], bobAssocData); bobDecryptedCiphertext.__debug__();
+    bobDecryptedCiphertext = proto.signalDecrypt(&bobRachetState, aliceHeaders[2], aliceCiphertexts[2], bobAssocData); bobDecryptedCiphertext.__debug__();
+    bobDecryptedCiphertext = proto.signalDecrypt(&bobRachetState, aliceHeaders[3], aliceCiphertexts[3], bobAssocData); bobDecryptedCiphertext.__debug__();
+    bobDecryptedCiphertext = proto.signalDecrypt(&bobRachetState, aliceHeaders[3], aliceCiphertexts[3], bobAssocData); bobDecryptedCiphertext.__debug__();
+    bobDecryptedCiphertext = proto.signalDecrypt(&bobRachetState, aliceHeaders[0], aliceCiphertexts[0], bobAssocData); bobDecryptedCiphertext.__debug__();
 
-    bobDecryptMessage = proto.signalDecrypt(&bobRachetState, randomHeader, aliceMessageRandom, bobAssocData);
-    bobDecryptMessage.__debug__();
-    cout << bobRachetState.skippedKeys.size() << endl;
 
-    bobDecryptMessage = proto.signalDecrypt(&bobRachetState, randomHeader2, aliceMessageRandom2, bobAssocData);
-    bobDecryptMessage.__debug__();
-    cout << bobRachetState.skippedKeys.size() << endl;
+    // >>> bob: [sends messages to alice]
+    Buffer bobCiphertext;
+    RachetHeader bobHeader;
+    vector<Buffer> bobCiphertexts;
+    vector<RachetHeader> bobHeaders;
+    for (int i = 0; i < bobPlaintexts.size(); ++i) {
+        bobCiphertext = proto.signalEncrypt(&bobRachetState, &bobHeader, bobPlaintexts[i], bobAssocData);
+        bobHeaders.push_back(bobHeader);
+        bobCiphertexts.push_back(bobCiphertext);
+    }
 
-    bobDecryptMessage = proto.signalDecrypt(&bobRachetState, randomHeader2, aliceMessageRandom2, bobAssocData);
-    bobDecryptMessage.__debug__();
-    cout << bobRachetState.skippedKeys.size() << endl;
+    // >>> alice: [decrypt message from bob]
+    Buffer aliceDecryptedCiphertext;
+    aliceDecryptedCiphertext = proto.signalDecrypt(&aliceRachetState, bobHeaders[2], bobCiphertexts[2], aliceAssocData); aliceDecryptedCiphertext.__debug__();
+    aliceDecryptedCiphertext = proto.signalDecrypt(&aliceRachetState, bobHeaders[1], bobCiphertexts[1], aliceAssocData); aliceDecryptedCiphertext.__debug__();
+    aliceDecryptedCiphertext = proto.signalDecrypt(&aliceRachetState, bobHeaders[0], bobCiphertexts[0], aliceAssocData); aliceDecryptedCiphertext.__debug__();
+    aliceDecryptedCiphertext = proto.signalDecrypt(&aliceRachetState, bobHeaders[1], bobCiphertexts[1], aliceAssocData); aliceDecryptedCiphertext.__debug__();
 
 }
 // ----------------------------------------------------------------------------------------------------------/-

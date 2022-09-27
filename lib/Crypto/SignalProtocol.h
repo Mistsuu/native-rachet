@@ -407,7 +407,7 @@ public:
         Buffer DH2 = this->serialize(this->calculateDHSharedSecret(keyAlice.ephemeralKey.privateKey, keyBob.identityKey.publicKey));
         Buffer DH3 = this->serialize(this->calculateDHSharedSecret(keyAlice.ephemeralKey.privateKey, keyBob.signedPreKey.publicKey));
         Buffer DH4 = this->serialize(this->calculateDHSharedSecret(keyAlice.ephemeralKey.privateKey, keyBob.oneTimePreKey.publicKey));
-        return KDF((DH1 + DH2) + (DH3 + DH4));
+        return this->KDF((DH1 + DH2) + (DH3 + DH4));
     }
 
     Buffer calculateSharedSecret(x3DHPreKeyBundleB keyBob, x3DHPreKeyBundleA keyAlice)
@@ -416,7 +416,7 @@ public:
         Buffer DH2 = this->serialize(this->calculateDHSharedSecret(keyBob.identityKey.privateKey,   keyAlice.ephemeralKey.publicKey));
         Buffer DH3 = this->serialize(this->calculateDHSharedSecret(keyBob.signedPreKey.privateKey,  keyAlice.ephemeralKey.publicKey));
         Buffer DH4 = this->serialize(this->calculateDHSharedSecret(keyBob.oneTimePreKey.privateKey, keyAlice.ephemeralKey.publicKey));
-        return KDF((DH1 + DH2) + (DH3 + DH4));
+        return this->KDF((DH1 + DH2) + (DH3 + DH4));
     }
 
     Buffer calculateAssociatedData(KeyPair keyAlice, KeyPair keyBob)
