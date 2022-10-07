@@ -22,6 +22,8 @@ public:
                          InstanceMethod("calculateAssociatedData", &SignalProto_Native::CalculateAssociatedData),
                          InstanceMethod("rachetInitAlice",         &SignalProto_Native::RachetInitAlice),
                          InstanceMethod("rachetInitBob",           &SignalProto_Native::RachetInitBob),
+                         InstanceMethod("innerEncrypt",            &SignalProto_Native::InnerEncrypt),
+                         InstanceMethod("innerDecrypt",            &SignalProto_Native::InnerDecrypt),
                          InstanceMethod("signalEncrypt",           &SignalProto_Native::SignalEncrypt),
                          InstanceMethod("signalDecrypt",           &SignalProto_Native::SignalDecrypt),
                          InstanceMethod("test",                    &SignalProto_Native::TestFunc),
@@ -497,6 +499,56 @@ public:
             "Object [bobKeyPair] is:\n"
             "   @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"                 
         );    
+    }
+
+    Napi::Value InnerEncrypt(const Napi::CallbackInfo& info)
+    {
+        Napi::Env env = info.Env();
+
+        if (info.Length() >= 3 && info[0].IsBuffer() && info[1].IsBuffer() && info[2].IsBuffer()) {
+            Napi::Buffer<u_char> NMessageKey       = info[0].As<Napi::Buffer<u_char>>();
+            Napi::Buffer<u_char> NPlaintext        = info[1].As<Napi::Buffer<u_char>>();
+            Napi::Buffer<u_char> NAssociatedData   = info[2].As<Napi::Buffer<u_char>>();
+            
+            Buffer messageKey;
+            Buffer plaintext;
+            Buffer associatedData;
+            this->parseBuffer(env, NMessageKey, messageKey);
+            this->parseBuffer(env, NPlaintext, plaintext);
+            this->parseBuffer(env, NAssociatedData, associatedData);
+
+            Buffer ciphertext = this->proto.innerEncrypt(messageKey, plaintext, associatedData);
+            return this->ToNapiObject(env, ciphertext);
+        }
+
+        throw Napi::TypeError::New(env, 
+            "Argument supply should be: (Buffer messageKey, Buffer plaintext, Buffer associatedData)\n"
+        ); 
+    }
+
+    Napi::Value InnerDecrypt(const Napi::CallbackInfo& info)
+    {
+        Napi::Env env = info.Env();
+
+        if (info.Length() >= 3 && info[0].IsBuffer() && info[1].IsBuffer() && info[2].IsBuffer()) {
+            Napi::Buffer<u_char> NMessageKey       = info[0].As<Napi::Buffer<u_char>>();
+            Napi::Buffer<u_char> NCiphertext       = info[1].As<Napi::Buffer<u_char>>();
+            Napi::Buffer<u_char> NAssociatedData   = info[2].As<Napi::Buffer<u_char>>();
+            
+            Buffer messageKey;
+            Buffer ciphertext;
+            Buffer associatedData;
+            this->parseBuffer(env, NMessageKey, messageKey);
+            this->parseBuffer(env, NCiphertext, ciphertext);
+            this->parseBuffer(env, NAssociatedData, associatedData);
+
+            Buffer plaintext = this->proto.innerDecrypt(messageKey, ciphertext, associatedData);
+            return this->ToNapiObject(env, plaintext);
+        }
+
+        throw Napi::TypeError::New(env, 
+            "Argument supply should be: (Buffer messageKey, Buffer ciphertext, Buffer associatedData)\n"
+        ); 
     }
 
     Napi::Value SignalEncrypt(const Napi::CallbackInfo& info)
