@@ -26,6 +26,8 @@ public:
                          InstanceMethod("innerDecrypt",            &SignalProto_Native::InnerDecrypt),
                          InstanceMethod("signalEncrypt",           &SignalProto_Native::SignalEncrypt),
                          InstanceMethod("signalDecrypt",           &SignalProto_Native::SignalDecrypt),
+                         InstanceMethod("serializeRachetHeader",   &SignalProto_Native::SerializeRachetHeader),
+                         InstanceMethod("deserializeRachetHeader", &SignalProto_Native::DeserializeRachetHeader),
                          InstanceMethod("test",                    &SignalProto_Native::TestFunc),
                         });
 
@@ -626,6 +628,49 @@ public:
             "   - @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"        
         ); 
     }
+
+
+    Napi::Value SerializeRachetHeader(const Napi::CallbackInfo& info)
+    {
+        Napi::Env env = info.Env();
+
+        if (info.Length() >= 1 && info[0].IsObject()) {
+            Napi::Object NRachetHeader = info[0].ToObject();
+            
+            RachetHeader rachetHeader;
+            if (this->parseRachetHeader(env, NRachetHeader, rachetHeader)) {
+                Buffer serializedRachetHeader = this->proto.serialize(rachetHeader);
+                return this->ToNapiObject(env, serializedRachetHeader);
+            }
+        }
+
+        throw Napi::TypeError::New(env, 
+            "Argument supply should be: (Object rachetHeader)\n"
+            "where:\n"
+            "\n"                 
+            "Object [rachetHeader] contains:\n"
+            "   - @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"        
+        ); 
+    }
+
+    Napi::Value DeserializeRachetHeader(const Napi::CallbackInfo& info)
+    {
+        Napi::Env env = info.Env();
+
+        if (info.Length() >= 1 && info[0].IsBuffer()) {
+            Napi::Buffer<u_char> NSerializedRachetHeader = info[0].As<Napi::Buffer<u_char>>();
+
+            Buffer serializedRachetHeader;
+            this->parseBuffer(env, NSerializedRachetHeader, serializedRachetHeader);
+
+            RachetHeader rachetHeader = this->proto.deserializeRachetHeader(serializedRachetHeader);
+            return this->ToNapiObject(env, rachetHeader);
+        }
+
+        throw Napi::TypeError::New(env, 
+            "Argument supply should be: (Buffer serializedRachetHeader)\n"
+        ); 
+    } 
 
 
     Napi::Value TestFunc(const Napi::CallbackInfo& info) 
