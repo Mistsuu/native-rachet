@@ -382,7 +382,7 @@ public:
             "Object [bobKeyBundle] contains:\n"
             "   - " IDENTITY_KEY " @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"                 
             "   - " SIGNED_PREKEY " @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"                 
-            "   - " ONETIME_PREKEY " @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"                 
+            "   - " ONETIME_PREKEY " (optional) @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"                 
         );
         
     }
@@ -413,7 +413,7 @@ public:
             "Object [bobKeyBundle] contains:\n"
             "   - " IDENTITY_KEY " @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"                 
             "   - " SIGNED_PREKEY " @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"                 
-            "   - " ONETIME_PREKEY " @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"                 
+            "   - " ONETIME_PREKEY " (optional) @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"                 
             "\n"                 
             "Object [aliceKeyBundle] contains:\n"
             "   - " IDENTITY_KEY " @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"                 
