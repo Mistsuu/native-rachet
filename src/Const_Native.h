@@ -22,3 +22,8 @@
 #define RACHET_STATE "rachetState"
 #define CIPHERTEXT "ciphertext"
 #define PLAINTEXT "plaintext"
+
+// for parsePreKeyBundleB();
+#define PARSE_BOBPREKEY_FAILED 0
+#define PARSE_BOBPREKEY_SUCCESS 1
+#define PARSE_BOBPREKEY_ONETIME_MISSING 2

@@ -401,21 +401,21 @@ public:
         return curve.xMUL(theirPublicKey, ourPrivateKey);
     }
 
-    Buffer calculateSharedSecret(x3DHPreKeyBundleA keyAlice, x3DHPreKeyBundleB keyBob)
+    Buffer calculateSharedSecret(x3DHPreKeyBundleA keyAlice, x3DHPreKeyBundleB keyBob, bool hasOneTimeKey)
     {
-        Buffer DH1 = this->serialize(this->calculateDHSharedSecret(keyAlice.identityKey.privateKey,  keyBob.signedPreKey.publicKey));
-        Buffer DH2 = this->serialize(this->calculateDHSharedSecret(keyAlice.ephemeralKey.privateKey, keyBob.identityKey.publicKey));
-        Buffer DH3 = this->serialize(this->calculateDHSharedSecret(keyAlice.ephemeralKey.privateKey, keyBob.signedPreKey.publicKey));
-        Buffer DH4 = this->serialize(this->calculateDHSharedSecret(keyAlice.ephemeralKey.privateKey, keyBob.oneTimePreKey.publicKey));
+        Buffer DH1 =                 this->serialize(this->calculateDHSharedSecret(keyAlice.identityKey.privateKey,  keyBob.signedPreKey.publicKey));
+        Buffer DH2 =                 this->serialize(this->calculateDHSharedSecret(keyAlice.ephemeralKey.privateKey, keyBob.identityKey.publicKey));
+        Buffer DH3 =                 this->serialize(this->calculateDHSharedSecret(keyAlice.ephemeralKey.privateKey, keyBob.signedPreKey.publicKey));
+        Buffer DH4 = hasOneTimeKey ? this->serialize(this->calculateDHSharedSecret(keyAlice.ephemeralKey.privateKey, keyBob.oneTimePreKey.publicKey)) : Buffer("");
         return this->KDF((DH1 + DH2) + (DH3 + DH4));
     }
 
-    Buffer calculateSharedSecret(x3DHPreKeyBundleB keyBob, x3DHPreKeyBundleA keyAlice)
+    Buffer calculateSharedSecret(x3DHPreKeyBundleB keyBob, x3DHPreKeyBundleA keyAlice, bool hasOneTimeKey)
     {
-        Buffer DH1 = this->serialize(this->calculateDHSharedSecret(keyBob.signedPreKey.privateKey,  keyAlice.identityKey.publicKey));
-        Buffer DH2 = this->serialize(this->calculateDHSharedSecret(keyBob.identityKey.privateKey,   keyAlice.ephemeralKey.publicKey));
-        Buffer DH3 = this->serialize(this->calculateDHSharedSecret(keyBob.signedPreKey.privateKey,  keyAlice.ephemeralKey.publicKey));
-        Buffer DH4 = this->serialize(this->calculateDHSharedSecret(keyBob.oneTimePreKey.privateKey, keyAlice.ephemeralKey.publicKey));
+        Buffer DH1 =                 this->serialize(this->calculateDHSharedSecret(keyBob.signedPreKey.privateKey,  keyAlice.identityKey.publicKey));
+        Buffer DH2 =                 this->serialize(this->calculateDHSharedSecret(keyBob.identityKey.privateKey,   keyAlice.ephemeralKey.publicKey));
+        Buffer DH3 =                 this->serialize(this->calculateDHSharedSecret(keyBob.signedPreKey.privateKey,  keyAlice.ephemeralKey.publicKey));
+        Buffer DH4 = hasOneTimeKey ? this->serialize(this->calculateDHSharedSecret(keyBob.oneTimePreKey.privateKey, keyAlice.ephemeralKey.publicKey)) : Buffer("");
         return this->KDF((DH1 + DH2) + (DH3 + DH4));
     }
 

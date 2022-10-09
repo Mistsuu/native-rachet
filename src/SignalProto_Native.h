@@ -114,7 +114,7 @@ public:
         return false;
     }
 
-    bool parsePreKeyBundleB(Napi::Env& env, Napi::Object& NBobKeyBundle, x3DHPreKeyBundleB& bobKeyBundle)
+    int parsePreKeyBundleB(Napi::Env& env, Napi::Object& NBobKeyBundle, x3DHPreKeyBundleB& bobKeyBundle)
     {
         if (NBobKeyBundle.Get(IDENTITY_KEY).IsObject() 
          && NBobKeyBundle.Get(SIGNED_PREKEY).IsObject() 
@@ -124,14 +124,14 @@ public:
             Napi::Object NSignedPreKey  = NBobKeyBundle.Get(SIGNED_PREKEY).ToObject();
             Napi::Object NOneTimePreKey = NBobKeyBundle.Get(ONETIME_PREKEY).ToObject();
             if (!this->parseKeyPair(env, NIdentityKey, bobKeyBundle.identityKey))
-                return false;
+                return PARSE_BOBPREKEY_FAILED;
             if (!this->parseKeyPair(env, NSignedPreKey, bobKeyBundle.signedPreKey))
-                return false;
+                return PARSE_BOBPREKEY_FAILED;
             if (!this->parseKeyPair(env, NOneTimePreKey, bobKeyBundle.oneTimePreKey))
-                return false;
-            return true;
+                return PARSE_BOBPREKEY_ONETIME_MISSING;
+            return PARSE_BOBPREKEY_SUCCESS;
         }
-        return false;
+        return PARSE_BOBPREKEY_FAILED;
     }
 
     bool parseSkippedKeys(Napi::Env& env, Napi::Array& NSkippedKeys, std::vector<SkippedKeyNode>& skippedKeys)
@@ -361,11 +361,12 @@ public:
 
             x3DHPreKeyBundleA aliceKeyBundle;
             x3DHPreKeyBundleB bobKeyBundle;
-
-            if (this->parsePreKeyBundleA(env, NAliceKeyBundle, aliceKeyBundle)
-             && this->parsePreKeyBundleB(env, NBobKeyBundle, bobKeyBundle))
+            
+            int parseBobStatus = PARSE_BOBPREKEY_FAILED;
+            if (                  this->parsePreKeyBundleA(env, NAliceKeyBundle, aliceKeyBundle)
+             && (parseBobStatus = this->parsePreKeyBundleB(env, NBobKeyBundle, bobKeyBundle)) != PARSE_BOBPREKEY_FAILED)
             {
-                Buffer sharedSecret = this->proto.calculateSharedSecret(aliceKeyBundle, bobKeyBundle);
+                Buffer sharedSecret = this->proto.calculateSharedSecret(aliceKeyBundle, bobKeyBundle, parseBobStatus == PARSE_BOBPREKEY_SUCCESS);
                 return this->ToNapiObject(env, sharedSecret);
             }    
         }
@@ -395,11 +396,12 @@ public:
 
             x3DHPreKeyBundleB bobKeyBundle;
             x3DHPreKeyBundleA aliceKeyBundle;
-
-            if (this->parsePreKeyBundleA(env, NAliceKeyBundle, aliceKeyBundle)
-             && this->parsePreKeyBundleB(env, NBobKeyBundle, bobKeyBundle))
+            
+            int parseBobStatus = PARSE_BOBPREKEY_FAILED;
+            if (                  this->parsePreKeyBundleA(env, NAliceKeyBundle, aliceKeyBundle)
+             && (parseBobStatus = this->parsePreKeyBundleB(env, NBobKeyBundle, bobKeyBundle)) != PARSE_BOBPREKEY_FAILED)
             {
-                Buffer sharedSecret = this->proto.calculateSharedSecret(bobKeyBundle, aliceKeyBundle);
+                Buffer sharedSecret = this->proto.calculateSharedSecret(bobKeyBundle, aliceKeyBundle, parseBobStatus == PARSE_BOBPREKEY_SUCCESS);
                 return this->ToNapiObject(env, sharedSecret);
             }    
         }

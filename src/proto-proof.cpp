@@ -36,10 +36,10 @@ int main(int argc, char** argv)
     // >>> alice -> bob: [her keys + onetime prekey she used]
     // ...
     // >>> alice: [calculate share secret]
-    Buffer sharedAlice = proto.calculateSharedSecret(aliceKeyBundle, bobKeyBundle); 
+    Buffer sharedAlice = proto.calculateSharedSecret(aliceKeyBundle, bobKeyBundle, true); 
     
     // >>> bob: [calculate share secret]
-    Buffer sharedBob = proto.calculateSharedSecret(bobKeyBundle, aliceKeyBundle);
+    Buffer sharedBob = proto.calculateSharedSecret(bobKeyBundle, aliceKeyBundle, true);
 
     /*  ==================================================================================================
                                         VERIFY SIGN PREKEY...
