@@ -370,7 +370,7 @@ public:
         Buffer IV         = encryptMaterial[{-16}];
 
         Buffer theirAssocData = ciphertext[{ (int)(curve.curveSizeBytes() * 3 + 8) }];
-        Buffer ourAuthData    = ProtocolHMAC().digest(authKey, theirAssocData);
+        Buffer ourAuthData    = ProtocolHMAC().digest(authKey, associatedData);
         Buffer theirAuthData  = ciphertext[{ -(int)ProtocolHMAC().outputSize }];
         if (ourAuthData != theirAuthData) {
             std::stringstream errorStream;
@@ -386,7 +386,7 @@ public:
             throw CryptFailException(errorStream.str());
         }
 
-        ciphertext = ciphertext[{ (int)theirAssocData.len(), -(int)ourAuthData.len() }];
+        ciphertext = ciphertext[{ (int)associatedData.len(), -(int)ourAuthData.len() }];
         return ProtocolCrypt().decrypt(IV, encryptKey, ciphertext);
     }
 
