@@ -625,7 +625,7 @@ public:
                 Buffer plaintext = this->proto.signalDecrypt(&rachetState, rachetHeader, ciphertext, associatedData);
 
                 Napi::Object NPlaintextObj = Napi::Object::New(env);
-                NPlaintextObj.Set(RACHET_STATE, this->ToNapiObject(env, rachetHeader));
+                NPlaintextObj.Set(RACHET_STATE, this->ToNapiObject(env, rachetState));
                 NPlaintextObj.Set(PLAINTEXT, this->ToNapiObject(env, plaintext));
                 return NPlaintextObj;
             }
