@@ -627,7 +627,7 @@ public:
             "   - @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"           
             "\n"                 
             "Object [rachetHeader] contains:\n"
-            "   - @Object { " PRIVATE_KEY " @Buffer, " PUBLIC_KEY " @Buffer }\n"        
+            "   - @Object { " PUBLIC_KEY " @Buffer, " IMESS " @Number, " PREVCHAINLEN " @Number }\n"        
         ); 
     }
 
