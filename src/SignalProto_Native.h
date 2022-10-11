@@ -521,8 +521,14 @@ public:
             this->parseBuffer(env, NPlaintext, plaintext);
             this->parseBuffer(env, NAssociatedData, associatedData);
 
-            Buffer ciphertext = this->proto.innerEncrypt(messageKey, plaintext, associatedData);
-            return this->ToNapiObject(env, ciphertext);
+            try {
+                Buffer ciphertext = this->proto.innerEncrypt(messageKey, plaintext, associatedData);
+                return this->ToNapiObject(env, ciphertext);
+            } catch (std::exception& e) {
+                throw Napi::TypeError::New(env, 
+                    e.what()
+                ); 
+            }
         }
 
         throw Napi::TypeError::New(env, 
@@ -546,8 +552,14 @@ public:
             this->parseBuffer(env, NCiphertext, ciphertext);
             this->parseBuffer(env, NAssociatedData, associatedData);
 
-            Buffer plaintext = this->proto.innerDecrypt(messageKey, ciphertext, associatedData);
-            return this->ToNapiObject(env, plaintext);
+            try {
+                Buffer plaintext = this->proto.innerDecrypt(messageKey, ciphertext, associatedData);
+                return this->ToNapiObject(env, plaintext);
+            } catch (std::exception& e) {
+                throw Napi::TypeError::New(env, 
+                    e.what()
+                ); 
+            }
         }
 
         throw Napi::TypeError::New(env, 
